@@ -491,7 +491,13 @@ const TradingJournal = () => {
                     >
                     </Pie>
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                      contentStyle={{ 
+                        backgroundColor: '#1e293b', 
+                        border: '1px solid #334155', 
+                        borderRadius: '8px',
+                        color: '#fff'
+                      }}
+                      itemStyle={{ color: '#fff' }}
                     />
                   </PieChart>
                 </ResponsiveContainer>
