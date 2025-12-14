@@ -237,11 +237,18 @@ const TradingJournal = () => {
   // Performance chart data
   const getPerformanceData = () => {
     let cumulative = 0;
-    return trades.slice().reverse().map(trade => {
+    // Sort trades by date in ascending order (oldest first)
+    const sortedTrades = [...trades].sort((a, b) => {
+      const dateA = new Date(a.date + ' ' + a.time);
+      const dateB = new Date(b.date + ' ' + b.time);
+      return dateA - dateB;
+    });
+    
+    return sortedTrades.map(trade => {
       cumulative += trade.pnl || 0;
       return {
         date: trade.date,
-        pnl: cumulative.toFixed(2)
+        pnl: parseFloat(cumulative.toFixed(2))
       };
     });
   };
