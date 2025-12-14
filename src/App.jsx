@@ -438,11 +438,23 @@ const TradingJournal = () => {
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={getPerformanceData()}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                        <XAxis dataKey="date" stroke="#94a3b8" tick={{ fontSize: 12 }} />
-                        <YAxis stroke="#94a3b8" />
+                        <XAxis 
+                          dataKey="date" 
+                          stroke="#94a3b8" 
+                          tick={{ fontSize: 12 }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={80}
+                        />
+                        <YAxis 
+                          stroke="#94a3b8"
+                          domain={['auto', 'auto']}
+                          tickFormatter={(value) => `$${value.toLocaleString()}`}
+                        />
                         <Tooltip
                           contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
                           labelStyle={{ color: '#cbd5e1' }}
+                          formatter={(value) => [`$${parseFloat(value).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, 'P&L']}
                         />
                         <Line type="monotone" dataKey="pnl" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 3 }} />
                       </LineChart>
