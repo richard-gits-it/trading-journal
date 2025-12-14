@@ -1,17 +1,23 @@
-import { sql } from '@vercel/postgres';
-
-export const config = {
-  runtime: 'nodejs',
-};
+import pkg from 'pg';
+const { Pool } = pkg;
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const pool = new Pool({
+    connectionString: process.env.POSTGRES_URL,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
+
   try {
+    const client = await pool.connect();
+    
     // Create trades table
-    await sql`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS trades (
         id SERIAL PRIMARY KEY,
         date VARCHAR(10) NOT NULL,
@@ -34,7 +40,10 @@ export default async function handler(req, res) {
         screenshots JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
+
+    client.release();
+    await pool.end();
 
     return res.status(200).json({ 
       message: 'Database initialized successfully',
@@ -42,6 +51,7 @@ export default async function handler(req, res) {
     });
   } catch (error) {
     console.error('Database initialization error:', error);
+    await pool.end();
     return res.status(500).json({ error: error.message });
   }
 }
