@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, Plus, X, Edit2, Trash2, Sun, Moon } from 'lucide-react';
-import { SignIn, SignedIn, SignedOut, UserButton } from '@clerk/clerk-react';
+import { SignIn, SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
 
 const API_URL = '/api/trades';
 
 const TradingJournal = () => {
+  const { user } = useUser();
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNewTrade, setShowNewTrade] = useState(false);
@@ -94,7 +95,11 @@ const TradingJournal = () => {
   const loadTrades = async () => {
     try {
       setLoading(true);
-      const response = await fetch(API_URL);
+      const response = await fetch(API_URL, {
+        headers: {
+          'x-user-id': user?.id
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         const formattedTrades = data.trades.map(t => ({
