@@ -924,76 +924,101 @@ const TradingJournal = () => {
 
             {/* New Trade Modal - Keeping minimal for token limits, same as before */}
             {showNewTrade && (
-              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                <div className={`${t.modalBg} rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border ${t.borderSolid} shadow-2xl`}>
-                  <div className={`${t.modalBg} border-b ${t.borderSolid} p-6 flex items-center justify-between sticky top-0 z-10`}>
+              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+                <div className="bg-slate-800 rounded-2xl max-w-4xl w-full my-8 border border-slate-700 shadow-2xl">
+                  <div className="bg-slate-800 border-b border-slate-700 p-6 flex items-center justify-between rounded-t-2xl">
                     <h2 className="text-2xl font-bold">{editingTrade ? 'Edit Trade' : 'New Trade'}</h2>
-                    <button onClick={() => { setShowNewTrade(false); setEditingTrade(null); }} className={`${t.textMuted} hover:${t.text}`}>
+                    <button
+                      onClick={() => {
+                        setShowNewTrade(false);
+                        setEditingTrade(null);
+                      }}
+                      className="text-slate-400 hover:text-white transition-colors"
+                    >
                       <X className="w-6 h-6" />
                     </button>
                   </div>
-            
+      
                   <div className="p-6 space-y-6">
-                    {/* General Section */}
+                    {/* General Info */}
                     <div>
                       <h3 className="text-lg font-semibold mb-4 text-blue-400">General</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Symbol</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Market</label>
+                          <select
+                            value={newTrade.market || 'FUTURES'}
+                            onChange={(e) => setNewTrade({...newTrade, market: e.target.value})}
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option>FUTURES</option>
+                            <option>STOCKS</option>
+                            <option>OPTIONS</option>
+                            <option>FOREX</option>
+                            <option>CRYPTO</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Symbol</label>
                           <input
                             type="text"
                             value={newTrade.symbol}
                             onChange={(e) => setNewTrade({...newTrade, symbol: e.target.value.toUpperCase()})}
-                            placeholder="e.g., ES"
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            placeholder="e.g., MGC"
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-            
+      
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Setup</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Setup</label>
                           <input
                             type="text"
                             value={newTrade.setup}
                             onChange={(e) => setNewTrade({...newTrade, setup: e.target.value})}
                             placeholder="e.g., Support Bounce"
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-            
+      
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Side</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Side</label>
                           <div className="flex gap-2">
                             <button
                               onClick={() => setNewTrade({...newTrade, side: 'BUY'})}
-                              className={`flex-1 py-2.5 rounded-lg font-semibold ${
-                                newTrade.side === 'BUY' ? 'bg-green-600 text-white' : `${t.inputBg} ${t.textMuted}`
+                              className={`flex-1 py-2.5 rounded-lg font-semibold transition-all ${
+                                newTrade.side === 'BUY'
+                                  ? 'bg-green-600 text-white'
+                                  : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700'
                               }`}
                             >
                               BUY
                             </button>
                             <button
                               onClick={() => setNewTrade({...newTrade, side: 'SELL'})}
-                              className={`flex-1 py-2.5 rounded-lg font-semibold ${
-                                newTrade.side === 'SELL' ? 'bg-red-600 text-white' : `${t.inputBg} ${t.textMuted}`
+                              className={`flex-1 py-2.5 rounded-lg font-semibold transition-all ${
+                                newTrade.side === 'SELL'
+                                  ? 'bg-red-600 text-white'
+                                  : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700'
                               }`}
                             >
                               SELL
                             </button>
                           </div>
                         </div>
-            
+      
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Quantity</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Quantity</label>
                           <input
                             type="number"
                             value={newTrade.quantity}
                             onChange={(e) => setNewTrade({...newTrade, quantity: e.target.value})}
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-            
-                        <div className="md:col-span-2">
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Date & Time</label>
+      
+                        <div>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Date & Time</label>
                           <input
                             type="datetime-local"
                             value={`${newTrade.date}T${newTrade.time}`}
@@ -1001,100 +1026,203 @@ const TradingJournal = () => {
                               const [date, time] = e.target.value.split('T');
                               setNewTrade({...newTrade, date, time});
                             }}
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
                       </div>
                     </div>
-            
-                    {/* Pricing & P&L Section */}
+      
+                    {/* Price Info */}
                     <div>
                       <h3 className="text-lg font-semibold mb-4 text-blue-400">Pricing & P&L</h3>
+      
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Entry Price</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Entry Price</label>
                           <input
                             type="number"
                             step="0.01"
                             value={newTrade.entryPrice}
                             onChange={(e) => setNewTrade({...newTrade, entryPrice: e.target.value})}
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            placeholder="0.00"
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-            
+      
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Exit Price</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Exit Price</label>
                           <input
                             type="number"
                             step="0.01"
                             value={newTrade.exitPrice}
                             onChange={(e) => setNewTrade({...newTrade, exitPrice: e.target.value})}
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            placeholder="0.00"
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-            
+      
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Target</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Target</label>
                           <input
                             type="number"
                             step="0.01"
                             value={newTrade.target}
                             onChange={(e) => setNewTrade({...newTrade, target: e.target.value})}
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            placeholder="0.00"
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-            
+      
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Stop Loss</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Stop Loss</label>
                           <input
                             type="number"
                             step="0.01"
                             value={newTrade.stopLoss}
                             onChange={(e) => setNewTrade({...newTrade, stopLoss: e.target.value})}
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            placeholder="0.00"
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-            
+      
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>P&L (Manual)</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">P&L (Manual)</label>
                           <input
                             type="number"
                             step="0.01"
                             value={newTrade.pnl}
                             onChange={(e) => setNewTrade({...newTrade, pnl: e.target.value})}
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            placeholder="0.00"
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
                       </div>
                     </div>
-            
-                    {/* Journal Section */}
+      
+                    {/* P&L & RR Display */}
+                    {newTrade.pnl !== '' && (
+                      <div className="bg-slate-700/30 rounded-lg p-6 border border-slate-600">
+                        <h3 className="text-lg font-semibold mb-4 text-blue-400">Trade Summary</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <div className="text-sm text-slate-400 mb-1">P&L</div>
+                            <div className={`text-2xl font-bold ${
+                              parseFloat(newTrade.pnl) >= 0 ? 'text-green-400' : 'text-red-400'
+                            }`}>
+                              ${parseFloat(newTrade.pnl || 0).toFixed(2)}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-slate-400 mb-1">Return %</div>
+                            <div className={`text-2xl font-bold ${
+                              (newTrade.entryPrice && parseFloat(newTrade.pnl) / (parseFloat(newTrade.entryPrice) * (parseFloat(newTrade.quantity) || 1)) * 100) >= 0
+                                ? 'text-green-400' 
+                                : 'text-red-400'
+                            }`}>
+                              {newTrade.entryPrice && parseFloat(newTrade.entryPrice) > 0
+                                ? ((parseFloat(newTrade.pnl) / (parseFloat(newTrade.entryPrice) * (parseFloat(newTrade.quantity) || 1))) * 100).toFixed(2)
+                                : '0.00'}%
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm text-slate-400 mb-1">Risk/Reward Ratio</div>
+                            <div className="text-2xl font-bold text-blue-400">
+                              {(() => {
+                                const entry = parseFloat(newTrade.entryPrice) || 0;
+                                const target = parseFloat(newTrade.target) || 0;
+                                const stopLoss = parseFloat(newTrade.stopLoss) || 0;
+                                
+                                if (entry > 0 && stopLoss > 0 && target > 0) {
+                                  const risk = Math.abs(entry - stopLoss);
+                                  const reward = Math.abs(entry - target);
+                                  const rr = risk > 0 ? reward / risk : 0;
+                                  return rr.toFixed(2);
+                                }
+                                return '-';
+                              })()}
+                            </div>
+                            <div className="text-xs text-slate-500 mt-1">
+                              (Entry→Target) ÷ (Entry→Stop)
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+      
+                    {/* Journal */}
                     <div>
                       <h3 className="text-lg font-semibold mb-4 text-blue-400">Journal</h3>
                       <div className="space-y-4">
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Tags</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Tags</label>
                           <input
                             type="text"
                             value={newTrade.tags?.join(', ')}
                             onChange={(e) => setNewTrade({...newTrade, tags: e.target.value.split(',').map(t => t.trim())})}
-                            placeholder="Scalp, Momentum"
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            placeholder="Scalp, Momentum, Support"
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-            
+      
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Notes</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">Notes</label>
                           <textarea
                             value={newTrade.notes}
                             onChange={(e) => setNewTrade({...newTrade, notes: e.target.value})}
+                            onPaste={(e) => {
+                              const items = e.clipboardData.items;
+                              for (let i = 0; i < items.length; i++) {
+                                if (items[i].type.indexOf('image') !== -1) {
+                                  e.preventDefault();
+                                  const blob = items[i].getAsFile();
+                                  const reader = new FileReader();
+                                  reader.onload = (event) => {
+                                    setNewTrade({
+                                      ...newTrade,
+                                      screenshots: [...newTrade.screenshots, event.target.result]
+                                    });
+                                  };
+                                  reader.readAsDataURL(blob);
+                                }
+                              }
+                            }}
                             rows="4"
-                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            placeholder="Trade notes, strategy, what worked/didn't work... (Paste images with Ctrl+V)"
+                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                           />
+                          
+                          {/* Screenshot Previews */}
+                          {newTrade.screenshots && newTrade.screenshots.length > 0 && (
+                            <div className="mt-3">
+                              <div className="text-sm text-slate-400 mb-2">Screenshots ({newTrade.screenshots.length})</div>
+                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {newTrade.screenshots.map((img, index) => (
+                                  <div key={index} className="relative group">
+                                    <img
+                                      src={img}
+                                      alt={`Screenshot ${index + 1}`}
+                                      className="w-full h-24 object-cover rounded-lg border border-slate-600"
+                                    />
+                                    <button
+                                      onClick={() => {
+                                        const newScreenshots = newTrade.screenshots.filter((_, i) => i !== index);
+                                        setNewTrade({...newTrade, screenshots: newScreenshots});
+                                      }}
+                                      className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
-            
+      
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Confidence: {newTrade.confidence}</label>
+                          <label className="block text-sm font-medium text-slate-400 mb-2">
+                            Confidence: {newTrade.confidence}
+                          </label>
                           <input
                             type="range"
                             min="0"
@@ -1103,21 +1231,29 @@ const TradingJournal = () => {
                             onChange={(e) => setNewTrade({...newTrade, confidence: parseInt(e.target.value)})}
                             className="w-full"
                           />
+                          <div className="flex justify-between text-xs text-slate-500 mt-1">
+                            <span>0</span>
+                            <span>5</span>
+                            <span>10</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-            
-                    {/* Footer Buttons */}
-                    <div className={`flex justify-end gap-3 pt-4 border-t ${t.border}`}>
+      
+                    {/* Actions */}
+                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
                       <button
-                        onClick={() => { setShowNewTrade(false); setEditingTrade(null); }}
-                        className={`px-6 py-2.5 ${t.inputBg} border ${t.border} ${t.hover} rounded-lg font-semibold`}
+                        onClick={() => {
+                          setShowNewTrade(false);
+                          setEditingTrade(null);
+                        }}
+                        className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-colors"
                       >
                         Cancel
                       </button>
                       <button
                         onClick={handleSubmitTrade}
-                        className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg font-semibold text-white"
+                        className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 rounded-lg font-semibold transition-all shadow-lg shadow-blue-500/20"
                       >
                         {editingTrade ? 'Update Trade' : 'Save Trade'}
                       </button>
