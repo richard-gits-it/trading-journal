@@ -928,13 +928,186 @@ const TradingJournal = () => {
                 <div className={`${t.modalBg} rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border ${t.borderSolid} shadow-2xl`}>
                   <div className={`${t.modalBg} border-b ${t.borderSolid} p-6 flex items-center justify-between sticky top-0 z-10`}>
                     <h2 className="text-2xl font-bold">{editingTrade ? 'Edit Trade' : 'New Trade'}</h2>
-                    <button onClick={() => { setShowNewTrade(false); setEditingTrade(null); }} className={t.textMuted + ' hover:' + t.text}>
+                    <button onClick={() => { setShowNewTrade(false); setEditingTrade(null); }} className={`${t.textMuted} hover:${t.text}`}>
                       <X className="w-6 h-6" />
                     </button>
                   </div>
-
+            
                   <div className="p-6 space-y-6">
-                    {/* Form fields same as before... */}
+                    {/* General Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-blue-400">General</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Symbol</label>
+                          <input
+                            type="text"
+                            value={newTrade.symbol}
+                            onChange={(e) => setNewTrade({...newTrade, symbol: e.target.value.toUpperCase()})}
+                            placeholder="e.g., ES"
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+            
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Setup</label>
+                          <input
+                            type="text"
+                            value={newTrade.setup}
+                            onChange={(e) => setNewTrade({...newTrade, setup: e.target.value})}
+                            placeholder="e.g., Support Bounce"
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+            
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Side</label>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setNewTrade({...newTrade, side: 'BUY'})}
+                              className={`flex-1 py-2.5 rounded-lg font-semibold ${
+                                newTrade.side === 'BUY' ? 'bg-green-600 text-white' : `${t.inputBg} ${t.textMuted}`
+                              }`}
+                            >
+                              BUY
+                            </button>
+                            <button
+                              onClick={() => setNewTrade({...newTrade, side: 'SELL'})}
+                              className={`flex-1 py-2.5 rounded-lg font-semibold ${
+                                newTrade.side === 'SELL' ? 'bg-red-600 text-white' : `${t.inputBg} ${t.textMuted}`
+                              }`}
+                            >
+                              SELL
+                            </button>
+                          </div>
+                        </div>
+            
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Quantity</label>
+                          <input
+                            type="number"
+                            value={newTrade.quantity}
+                            onChange={(e) => setNewTrade({...newTrade, quantity: e.target.value})}
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+            
+                        <div className="md:col-span-2">
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Date & Time</label>
+                          <input
+                            type="datetime-local"
+                            value={`${newTrade.date}T${newTrade.time}`}
+                            onChange={(e) => {
+                              const [date, time] = e.target.value.split('T');
+                              setNewTrade({...newTrade, date, time});
+                            }}
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+            
+                    {/* Pricing & P&L Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-blue-400">Pricing & P&L</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Entry Price</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={newTrade.entryPrice}
+                            onChange={(e) => setNewTrade({...newTrade, entryPrice: e.target.value})}
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+            
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Exit Price</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={newTrade.exitPrice}
+                            onChange={(e) => setNewTrade({...newTrade, exitPrice: e.target.value})}
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+            
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Target</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={newTrade.target}
+                            onChange={(e) => setNewTrade({...newTrade, target: e.target.value})}
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+            
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Stop Loss</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={newTrade.stopLoss}
+                            onChange={(e) => setNewTrade({...newTrade, stopLoss: e.target.value})}
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+            
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>P&L (Manual)</label>
+                          <input
+                            type="number"
+                            step="0.01"
+                            value={newTrade.pnl}
+                            onChange={(e) => setNewTrade({...newTrade, pnl: e.target.value})}
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+            
+                    {/* Journal Section */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-blue-400">Journal</h3>
+                      <div className="space-y-4">
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Tags</label>
+                          <input
+                            type="text"
+                            value={newTrade.tags?.join(', ')}
+                            onChange={(e) => setNewTrade({...newTrade, tags: e.target.value.split(',').map(t => t.trim())})}
+                            placeholder="Scalp, Momentum"
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+            
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Notes</label>
+                          <textarea
+                            value={newTrade.notes}
+                            onChange={(e) => setNewTrade({...newTrade, notes: e.target.value})}
+                            rows="4"
+                            className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                          />
+                        </div>
+            
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Confidence: {newTrade.confidence}</label>
+                          <input
+                            type="range"
+                            min="0"
+                            max="10"
+                            value={newTrade.confidence}
+                            onChange={(e) => setNewTrade({...newTrade, confidence: parseInt(e.target.value)})}
+                            className="w-full"
+                          />
+                        </div>
+                      </div>
+                    </div>
+            
+                    {/* Footer Buttons */}
                     <div className={`flex justify-end gap-3 pt-4 border-t ${t.border}`}>
                       <button
                         onClick={() => { setShowNewTrade(false); setEditingTrade(null); }}
