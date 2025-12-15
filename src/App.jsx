@@ -194,14 +194,20 @@ const TradingJournal = () => {
       if (editingTrade) {
         await fetch(API_URL, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-user-id': user?.id
+          },
           body: JSON.stringify({ ...trade, id: editingTrade.id })
         });
         setEditingTrade(null);
       } else {
         await fetch(API_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-user-id': user?.id
+          },
           body: JSON.stringify(trade)
         });
       }
@@ -233,7 +239,12 @@ const TradingJournal = () => {
 
   const deleteTrade = async (id) => {
     try {
-      await fetch(`${API_URL}?id=${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}?id=${id}`, { 
+        method: 'DELETE',
+        headers: {
+          'x-user-id': user?.id
+        }
+      });
       await loadTrades();
     } catch (error) {
       console.error('Error deleting trade:', error);
@@ -274,7 +285,10 @@ const TradingJournal = () => {
             for (const trade of data.trades) {
               await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                  'Content-Type': 'application/json',
+                  'x-user-id': user?.id
+                },
                 body: JSON.stringify(trade)
               });
             }
