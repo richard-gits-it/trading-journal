@@ -133,8 +133,10 @@ const TradingJournal = () => {
   };
 
   useEffect(() => {
-    loadTrades();
-  }, []);
+    if (user?.id) {
+      loadTrades();
+    }
+  }, [user?.id]); // Wait for user to be loaded
 
   const calculateStats = () => {
     const completedTrades = trades.filter(t => t.status === 'WIN' || t.status === 'LOSS');
