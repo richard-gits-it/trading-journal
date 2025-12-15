@@ -1,108 +1,99 @@
 import pkg from 'pg';
 const { Pool } = pkg;
 
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: { rejectUnauthorized: false }
+});
+
 export default async function handler(req, res) {
   // Enable CORS
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
 
-  const pool = new Pool({
-    connectionString: process.env.POSTGRES_URL,
-    ssl: {
-      rejectUnauthorized: false
-    }
-  });
+  // Get user ID from Clerk session
+  const userId = req.headers['x-user-id'];
+  
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized - User ID required' });
+    return;
+  }
 
+  let client;
   try {
-    const client = await pool.connect();
+    client = await pool.connect();
 
     if (req.method === 'GET') {
-      // Get all trades
+      // Get all trades for this user only
       const result = await client.query(
-        'SELECT * FROM trades ORDER BY date DESC, time DESC'
+        'SELECT * FROM trades WHERE user_id = $1 ORDER BY date DESC, time DESC',
+        [userId]
       );
-      client.release();
-      await pool.end();
-      return res.status(200).json({ trades: result.rows });
-    }
+      res.status(200).json({ trades: result.rows });
 
-    if (req.method === 'POST') {
-      // Create new trade
-      const trade = req.body;
+    } else if (req.method === 'POST') {
+      // Create new trade for this user
+      const { date, time, symbol, side, quantity, entryPrice, exitPrice, status, pnl, pnlPercent, rrRatio, tags, notes, confidence, setup, target, stopLoss, screenshots } = req.body;
       
       const result = await client.query(
-        `INSERT INTO trades (
-          date, time, symbol, side, quantity, entry_price, exit_price,
-          status, pnl, pnl_percent, rr_ratio, tags, notes, confidence,
-          setup, target, stop_loss, screenshots
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-        RETURNING *`,
-        [
-          trade.date, trade.time, trade.symbol, trade.side,
-          trade.quantity, trade.entryPrice, trade.exitPrice,
-          trade.status, trade.pnl, trade.pnlPercent, trade.rrRatio,
-          JSON.stringify(trade.tags), trade.notes, trade.confidence,
-          trade.setup, trade.target, trade.stopLoss,
-          JSON.stringify(trade.screenshots)
-        ]
+        `INSERT INTO trades (user_id, date, time, symbol, side, quantity, entry_price, exit_price, status, pnl, pnl_percent, rr_ratio, tags, notes, confidence, setup, target, stop_loss, screenshots, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW())
+         RETURNING *`,
+        [userId, date, time, symbol, side, quantity, entryPrice, exitPrice, status, pnl, pnlPercent, rrRatio, JSON.stringify(tags || []), notes, confidence, setup, target, stopLoss, JSON.stringify(screenshots || [])]
       );
       
-      client.release();
-      await pool.end();
-      return res.status(201).json({ trade: result.rows[0] });
-    }
+      res.status(201).json({ trade: result.rows[0] });
 
-    if (req.method === 'PUT') {
-      // Update existing trade
-      const trade = req.body;
+    } else if (req.method === 'PUT') {
+      // Update trade (only if it belongs to this user)
+      const { id, date, time, symbol, side, quantity, entryPrice, exitPrice, status, pnl, pnlPercent, rrRatio, tags, notes, confidence, setup, target, stopLoss, screenshots } = req.body;
       
       const result = await client.query(
-        `UPDATE trades SET
-          date = $1, time = $2, symbol = $3, side = $4,
-          quantity = $5, entry_price = $6, exit_price = $7,
-          status = $8, pnl = $9, pnl_percent = $10, rr_ratio = $11,
-          tags = $12, notes = $13, confidence = $14,
-          setup = $15, target = $16, stop_loss = $17,
-          screenshots = $18
-        WHERE id = $19
-        RETURNING *`,
-        [
-          trade.date, trade.time, trade.symbol, trade.side,
-          trade.quantity, trade.entryPrice, trade.exitPrice,
-          trade.status, trade.pnl, trade.pnlPercent, trade.rrRatio,
-          JSON.stringify(trade.tags), trade.notes, trade.confidence,
-          trade.setup, trade.target, trade.stopLoss,
-          JSON.stringify(trade.screenshots), trade.id
-        ]
+        `UPDATE trades 
+         SET date = $1, time = $2, symbol = $3, side = $4, quantity = $5, entry_price = $6, exit_price = $7, 
+             status = $8, pnl = $9, pnl_percent = $10, rr_ratio = $11, tags = $12, notes = $13, 
+             confidence = $14, setup = $15, target = $16, stop_loss = $17, screenshots = $18
+         WHERE id = $19 AND user_id = $20
+         RETURNING *`,
+        [date, time, symbol, side, quantity, entryPrice, exitPrice, status, pnl, pnlPercent, rrRatio, JSON.stringify(tags || []), notes, confidence, setup, target, stopLoss, JSON.stringify(screenshots || []), id, userId]
       );
       
-      client.release();
-      await pool.end();
-      return res.status(200).json({ trade: result.rows[0] });
-    }
+      if (result.rows.length === 0) {
+        res.status(404).json({ error: 'Trade not found or unauthorized' });
+      } else {
+        res.status(200).json({ trade: result.rows[0] });
+      }
 
-    if (req.method === 'DELETE') {
-      // Delete trade
+    } else if (req.method === 'DELETE') {
+      // Delete trade (only if it belongs to this user)
       const { id } = req.query;
       
-      await client.query('DELETE FROM trades WHERE id = $1', [id]);
+      const result = await client.query(
+        'DELETE FROM trades WHERE id = $1 AND user_id = $2 RETURNING *',
+        [id, userId]
+      );
       
-      client.release();
-      await pool.end();
-      return res.status(200).json({ success: true });
+      if (result.rows.length === 0) {
+        res.status(404).json({ error: 'Trade not found or unauthorized' });
+      } else {
+        res.status(200).json({ deleted: true, id });
+      }
+
+    } else {
+      res.status(405).json({ error: 'Method not allowed' });
     }
 
-    client.release();
-    await pool.end();
-    return res.status(405).json({ error: 'Method not allowed' });
   } catch (error) {
     console.error('Database error:', error);
-    await pool.end();
-    return res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Database error', details: error.message });
+  } finally {
+    if (client) client.release();
   }
 }
