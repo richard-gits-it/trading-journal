@@ -11,11 +11,26 @@ export default async function handler(req, res) {
   try {
     client = await pool.connect();
     
+    // Check if user_id column exists
+    const checkColumn = await client.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name='trades' AND column_name='user_id'
+    `);
+
+    if (checkColumn.rows.length === 0) {
+      // Add user_id column if it doesn't exist
+      await client.query(`
+        ALTER TABLE trades ADD COLUMN user_id VARCHAR(255)
+      `);
+      console.log('Added user_id column');
+    }
+
     // Create trades table with user_id column
     await client.query(`
       CREATE TABLE IF NOT EXISTS trades (
         id SERIAL PRIMARY KEY,
-        user_id VARCHAR(255) NOT NULL,
+        user_id VARCHAR(255),
         date VARCHAR(10),
         time VARCHAR(10),
         symbol VARCHAR(10),
@@ -38,28 +53,30 @@ export default async function handler(req, res) {
       )
     `);
 
-    // Create index on user_id for faster queries
+    // Create indexes for better performance
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_trades_user_id ON trades(user_id)
     `);
 
-    // Create index on date for faster sorting
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_trades_date ON trades(date DESC)
     `);
 
     res.status(200).json({ 
       message: 'Database initialized successfully with user isolation',
-      note: 'Each user will now have their own private trades'
+      note: 'Each user will now have their own private trades',
+      userIdColumn: checkColumn.rows.length > 0 ? 'Already exists' : 'Just added'
     });
 
   } catch (error) {
     console.error('Database initialization error:', error);
-    res.status(500).json({ error: 'Database initialization failed', details: error.message });
+    res.status(500).json({ 
+      error: 'Database initialization failed', 
+      details: error.message 
+    });
   } finally {
     if (client) {
       client.release();
     }
-    await pool.end();
   }
 }
