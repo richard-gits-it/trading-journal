@@ -19,6 +19,92 @@ const TradingJournal = () => {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
+
+  const importTopStepXCSV = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        // Skip header row
+        const dataLines = lines.slice(1);
+        
+        let imported = 0;
+        let failed = 0;
+  
+        for (const line of dataLines) {
+          try {
+            // Parse CSV (handling commas in quotes)
+            const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+              .map(val => val.replace(/^"|"$/g, '').trim());
+  
+            if (values.length < 13) continue;
+  
+            const [id, contractName, enteredAt, exitedAt, entryPrice, exitPrice, 
+                   fees, pnl, size, type, tradeDay, tradeDuration, commissions] = values;
+  
+            // Parse dates
+            const entryDate = new Date(enteredAt);
+            const exitDate = new Date(exitedAt);
+  
+            // Convert to your format
+            const trade = {
+              symbol: contractName,
+              side: type.toUpperCase() === 'LONG' ? 'BUY' : 'SELL',
+              quantity: parseInt(size) || 1,
+              entryPrice: parseFloat(entryPrice) || 0,
+              exitPrice: parseFloat(exitPrice) || 0,
+              pnl: parseFloat(pnl) || 0,
+              pnlPercent: 0, // Calculate if needed
+              rrRatio: 0,
+              date: entryDate.toISOString().split('T')[0],
+              time: entryDate.toTimeString().slice(0, 5),
+              status: parseFloat(pnl) > 0 ? 'WIN' : parseFloat(pnl) < 0 ? 'LOSS' : '',
+              tags: ['TopStepX Import'],
+              notes: `Duration: ${tradeDuration}\nFees: $${fees}\nTrade ID: ${id}`,
+              confidence: 5,
+              setup: '',
+              target: 0,
+              stopLoss: 0,
+              screenshots: []
+            };
+  
+            // Save to database
+            const response = await fetch(API_URL, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'x-user-id': user?.id
+              },
+              body: JSON.stringify(trade)
+            });
+  
+            if (response.ok) {
+              imported++;
+            } else {
+              failed++;
+            }
+          } catch (err) {
+            console.error('Error parsing line:', line, err);
+            failed++;
+          }
+        }
+  
+        await loadTrades();
+        alert(`Import complete!\n✅ Imported: ${imported}\n❌ Failed: ${failed}`);
+        
+      } catch (error) {
+        console.error('Error importing CSV:', error);
+        alert('Error importing CSV file');
+      }
+    };
+    
+    reader.readAsText(file);
+  };
   
   const [newTrade, setNewTrade] = useState({
     date: new Date().toISOString().split('T')[0],
