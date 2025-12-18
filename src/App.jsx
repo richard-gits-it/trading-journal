@@ -240,87 +240,111 @@ const TradingJournal = () => {
   };
 
   const deleteTrade = async (id) => {
-    try {
-      await fetch(`${API_URL}?id=${id}`, { 
-        method: 'DELETE',
-        headers: {
-          'x-user-id': user?.id
-        }
-      });
-      await loadTrades();
-    } catch (error) {
-      console.error('Error deleting trade:', error);
-    }
-  };
-
-  const editTrade = (trade) => {
-    setNewTrade({
-      ...trade,
-      tags: trade.tags || [],
-      screenshots: trade.screenshots || []
-    });
-    setEditingTrade(trade);
-    setShowNewTrade(true);
-  };
-
-  const exportTrades = () => {
-    const dataStr = JSON.stringify({ trades }, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `trades_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const importTrades = async (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const data = JSON.parse(e.target.result);
-          if (data.trades && Array.isArray(data.trades)) {
-            for (const trade of data.trades) {
-              await fetch(API_URL, {
-                method: 'POST',
-                headers: { 
-                  'Content-Type': 'application/json',
-                  'x-user-id': user?.id
-                },
-                body: JSON.stringify(trade)
-              });
-            }
-            await loadTrades();
-            alert('Trades imported successfully!');
+      try {
+        await fetch(`${API_URL}?id=${id}`, { 
+          method: 'DELETE',
+          headers: {
+            'x-user-id': user?.id
           }
-        } catch (error) {
-          console.error('Error importing:', error);
-          alert('Error importing trades');
+        });
+        await loadTrades();
+      } catch (error) {
+        console.error('Error deleting trade:', error);
+      }
+    };
+  
+    const editTrade = (trade) => {
+      setNewTrade({
+        ...trade,
+        tags: trade.tags || [],
+        screenshots: trade.screenshots || []
+      });
+      setEditingTrade(trade);
+      setShowNewTrade(true);
+    };
+  
+    const exportTrades = () => {
+      const dataStr = JSON.stringify({ trades }, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `trades_${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
+  
+    const importTopStepXCSV = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(line => line.trim());
+        const dataLines = lines.slice(1); // Skip header
+        
+        let imported = 0;
+        let failed = 0;
+  
+        for (const line of dataLines) {
+          try {
+            const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+              ?.map(val => val.replace(/^"|"$/g, '').trim());
+            if (!values || values.length < 13) continue;
+  
+            const [id, contractName, enteredAt, exitedAt, entryPrice, exitPrice, 
+                   fees, pnl, size, type, tradeDay, tradeDuration] = values;
+  
+            const entryDate = new Date(enteredAt);
+            
+            const trade = {
+              symbol: contractName,
+              side: type.toUpperCase() === 'LONG' ? 'BUY' : 'SELL',
+              quantity: parseInt(size) || 1,
+              entryPrice: parseFloat(entryPrice) || 0,
+              exitPrice: parseFloat(exitPrice) || 0,
+              pnl: parseFloat(pnl) || 0,
+              pnlPercent: 0,
+              rrRatio: 0,
+              date: entryDate.toISOString().split('T')[0],
+              time: entryDate.toTimeString().slice(0, 5),
+              status: parseFloat(pnl) > 0 ? 'WIN' : parseFloat(pnl) < 0 ? 'LOSS' : '',
+              tags: ['TopStepX'],
+              notes: `Duration: ${tradeDuration}\nFees: $${fees}\nID: ${id}`,
+              confidence: 5,
+              setup: '',
+              target: 0,
+              stopLoss: 0,
+              screenshots: []
+            };
+  
+            const response = await fetch(API_URL, {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'x-user-id': user?.id
+              },
+              body: JSON.stringify(trade)
+            });
+  
+            if (response.ok) imported++;
+            else failed++;
+          } catch (err) {
+            failed++;
+          }
         }
-      };
-      reader.readAsText(file);
-    }
-  };
-
-  const getPerformanceData = () => {
-    let cumulative = 0;
-    const sortedTrades = [...trades].sort((a, b) => {
-      const dateA = new Date(a.date + ' ' + a.time);
-      const dateB = new Date(b.date + ' ' + b.time);
-      return dateA - dateB;
-    });
-    
-    return sortedTrades.map(trade => {
-      cumulative += trade.pnl || 0;
-      return {
-        date: trade.date,
-        pnl: parseFloat(cumulative.toFixed(2))
-      };
-    });
+  
+        await loadTrades();
+        alert(`Import complete!\n✅ Imported: ${imported}\n❌ Failed: ${failed}`);
+      } catch (error) {
+        alert('Error importing CSV file');
+      }
+    };
+    reader.readAsText(file);
   };
 
   const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
@@ -462,7 +486,19 @@ const TradingJournal = () => {
                     📤 Export
                   </button>
                   <label className="flex-1">
-                    <input type="file" accept=".json" onChange={importTrades} className="hidden" />
+                    <input 
+                      type="file" 
+                      accept=".csv,.json" 
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file?.name.endsWith('.csv')) {
+                          importTopStepXCSV(e);
+                        } else {
+                          importTrades(e);
+                        }
+                      }} 
+                      className="hidden" 
+                    />
                     <div className={`px-3 py-2 ${t.inputBg} border ${t.border} ${t.hover} rounded-lg text-xs font-semibold transition-colors text-center cursor-pointer`}>
                       📥 Import
                     </div>
