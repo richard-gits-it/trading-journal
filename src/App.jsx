@@ -361,77 +361,7 @@ const TradingJournal = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     };
-  
-    const importTopStepXCSV = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-  
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      try {
-        const text = e.target.result;
-        const lines = text.split('\n').filter(line => line.trim());
-        const dataLines = lines.slice(1); // Skip header
-        
-        let imported = 0;
-        let failed = 0;
-  
-        for (const line of dataLines) {
-          try {
-            const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
-              ?.map(val => val.replace(/^"|"$/g, '').trim());
-            if (!values || values.length < 13) continue;
-  
-            const [id, contractName, enteredAt, exitedAt, entryPrice, exitPrice, 
-                   fees, pnl, size, type, tradeDay, tradeDuration] = values;
-  
-            const entryDate = new Date(enteredAt);
-            
-            const trade = {
-              symbol: contractName,
-              side: type.toUpperCase() === 'LONG' ? 'BUY' : 'SELL',
-              quantity: parseInt(size) || 1,
-              entryPrice: parseFloat(entryPrice) || 0,
-              exitPrice: parseFloat(exitPrice) || 0,
-              pnl: parseFloat(pnl) || 0,
-              pnlPercent: 0,
-              rrRatio: 0,
-              date: entryDate.toISOString().split('T')[0],
-              time: entryDate.toTimeString().slice(0, 5),
-              status: parseFloat(pnl) > 0 ? 'WIN' : parseFloat(pnl) < 0 ? 'LOSS' : '',
-              tags: ['TopStepX'],
-              notes: `Duration: ${tradeDuration}\nFees: $${fees}\nID: ${id}`,
-              confidence: 5,
-              setup: '',
-              target: 0,
-              stopLoss: 0,
-              screenshots: []
-            };
-  
-            const response = await fetch(API_URL, {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'x-user-id': user?.id
-              },
-              body: JSON.stringify(trade)
-            });
-  
-            if (response.ok) imported++;
-            else failed++;
-          } catch (err) {
-            failed++;
-          }
-        }
-  
-        await loadTrades();
-        alert(`Import complete!\n✅ Imported: ${imported}\n❌ Failed: ${failed}`);
-      } catch (error) {
-        alert('Error importing CSV file');
-      }
-    };
-    reader.readAsText(file);
-  };
+
 
   const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
@@ -572,20 +502,8 @@ const TradingJournal = () => {
                     📤 Export
                   </button>
                   <label className="flex-1">
-                    <input 
-                      type="file" 
-                      accept=".csv,.json" 
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file?.name.endsWith('.csv')) {
-                          importTopStepXCSV(e);
-                        } else {
-                          importTrades(e);
-                        }
-                      }} 
-                      className="hidden" 
-                    />
-                    <div className={`px-3 py-2 ${t.inputBg} border ${t.border} ${t.hover} rounded-lg text-xs font-semibold transition-colors text-center cursor-pointer`}>
+                    <input type="file" accept=".json" onChange={importTrades} className="hidden" />
+                    <div className={`px-3 py-2 ...`}>
                       📥 Import
                     </div>
                   </label>
