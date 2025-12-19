@@ -501,40 +501,6 @@ const TradingJournal = () => {
                   </div>
                 </div>
 
-                {/* Trading Mode Toggle */}
-                <div className={`mt-4 ${t.cardBg} rounded-lg p-3 border ${tradingMode === 'backtest' ? 'border-orange-500/50' : t.border}`}>
-                  <div className={`text-xs ${t.textMuted} mb-2 flex items-center justify-between`}>
-                    <span>Trading Mode</span>
-                    {tradingMode === 'backtest' && (
-                      <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">
-                        BACKTEST
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setTradingMode('live')}
-                      className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-all ${
-                        tradingMode === 'live'
-                          ? 'bg-green-600 text-white shadow-lg shadow-green-500/30'
-                          : `${t.inputBg} ${t.textMuted} ${t.hover}`
-                      }`}
-                    >
-                      🟢 Live
-                    </button>
-                    <button
-                      onClick={() => setTradingMode('backtest')}
-                      className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-all ${
-                        tradingMode === 'backtest'
-                          ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30'
-                          : `${t.inputBg} ${t.textMuted} ${t.hover}`
-                      }`}
-                    >
-                      🧪 Backtest
-                    </button>
-                  </div>
-                </div>
-
                 {/* New Trade Button */}
                 <button
                   onClick={() => setShowNewTrade(true)}
@@ -587,8 +553,17 @@ const TradingJournal = () => {
                     }}
                   />
                   <div className="flex-1">
-                    <div className="font-semibold">{user?.fullName || user?.firstName || 'User'}</div>
-                    <div className={`text-xs ${t.textMuted}`}>View menu</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">{user?.fullName || user?.firstName || 'User'}</span>
+                      {tradingMode === 'backtest' && (
+                        <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">
+                          🧪
+                        </span>
+                      )}
+                    </div>
+                    <div className={`text-xs ${t.textMuted}`}>
+                      {tradingMode === 'backtest' ? 'Backtest mode' : 'View menu'}
+                    </div>
                   </div>
                   <span className={`text-sm ${t.textMuted}`}>{showProfileMenu ? '▲' : '▼'}</span>
                 </div>
@@ -652,6 +627,47 @@ const TradingJournal = () => {
                             <div className={`text-xs ${t.textMuted}`}>Switch theme</div>
                           </div>
                         </button>
+
+                        {/* Trading Mode */}
+                        <div className={`px-4 py-3 rounded-lg`}>
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className="text-xl">{tradingMode === 'live' ? '🟢' : '🧪'}</span>
+                            <div className="flex-1">
+                              <div className="font-semibold">Trading Mode</div>
+                              <div className={`text-xs ${t.textMuted}`}>
+                                {tradingMode === 'live' ? 'Live trading account' : 'Backtest & practice'}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setTradingMode('live');
+                                setShowProfileMenu(false);
+                              }}
+                              className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${
+                                tradingMode === 'live'
+                                  ? 'bg-green-600 text-white shadow-lg shadow-green-500/20'
+                                  : `${t.inputBg} ${t.textMuted} ${t.hover}`
+                              }`}
+                            >
+                              🟢 Live
+                            </button>
+                            <button
+                              onClick={() => {
+                                setTradingMode('backtest');
+                                setShowProfileMenu(false);
+                              }}
+                              className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${
+                                tradingMode === 'backtest'
+                                  ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/20'
+                                  : `${t.inputBg} ${t.textMuted} ${t.hover}`
+                              }`}
+                            >
+                              🧪 Backtest
+                            </button>
+                          </div>
+                        </div>
 
                         {/* Divider */}
                         <div className={`border-t ${t.border} my-1`}></div>
