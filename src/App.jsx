@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie } from 'recharts';
 import { TrendingUp, TrendingDown, DollarSign, Plus, X, Edit2, Trash2, Sun, Moon } from 'lucide-react';
-import { SignIn, SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
+import { SignIn, SignedIn, SignedOut, UserButton, useUser, useClerk } from '@clerk/clerk-react';
 
 const API_URL = '/api/trades';
 
 const TradingJournal = () => {
   const { user } = useUser();
+  const { signOut } = useClerk();
   const [trades, setTrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNewTrade, setShowNewTrade] = useState(false);
@@ -413,6 +414,15 @@ const TradingJournal = () => {
                     {parseFloat(stats.totalPnL) >= 0 ? '+' : ''}{stats.totalTrades > 0 ? ((parseFloat(stats.totalPnL) / (stats.totalTrades * 100)) * 100).toFixed(2) : '0.00'}%
                   </div>
                 </div>
+
+                {/* New Trade Button */}
+                <button
+                  onClick={() => setShowNewTrade(true)}
+                  className="w-full mt-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20"
+                >
+                  <Plus className="w-5 h-5" />
+                  New Trade
+                </button>
               </div>
 
               <nav className="flex-1 p-4 overflow-y-auto">
@@ -475,21 +485,6 @@ const TradingJournal = () => {
                     {/* Menu Content */}
                     <div className={`absolute bottom-full left-4 right-4 mb-2 ${t.cardBg} border ${t.border} rounded-xl shadow-2xl z-50 overflow-hidden`}>
                       <div className="p-2 space-y-1">
-                        {/* New Trade */}
-                        <button
-                          onClick={() => {
-                            setShowNewTrade(true);
-                            setShowProfileMenu(false);
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${t.hover} transition-colors text-left`}
-                        >
-                          <Plus className="w-5 h-5 text-blue-400" />
-                          <div>
-                            <div className="font-semibold">New Trade</div>
-                            <div className={`text-xs ${t.textMuted}`}>Record a new trade</div>
-                          </div>
-                        </button>
-
                         {/* Export */}
                         <button
                           onClick={() => {
@@ -535,6 +530,24 @@ const TradingJournal = () => {
                           <div>
                             <div className="font-semibold">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</div>
                             <div className={`text-xs ${t.textMuted}`}>Switch theme</div>
+                          </div>
+                        </button>
+
+                        {/* Divider */}
+                        <div className={`border-t ${t.border} my-1`}></div>
+
+                        {/* Logout */}
+                        <button
+                          onClick={() => {
+                            signOut();
+                            setShowProfileMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-500/10 transition-colors text-left`}
+                        >
+                          <span className="text-xl">🚪</span>
+                          <div>
+                            <div className="font-semibold text-red-400">Logout</div>
+                            <div className={`text-xs ${t.textMuted}`}>Sign out of your account</div>
                           </div>
                         </button>
                       </div>
