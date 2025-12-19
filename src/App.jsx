@@ -19,7 +19,6 @@ const TradingJournal = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [statsFilterTags, setStatsFilterTags] = useState([]);
   const [statsFilterSetup, setStatsFilterSetup] = useState('all');
-  const [tradingMode, setTradingMode] = useState('live'); // 'live' or 'backtest'
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
@@ -105,8 +104,7 @@ const TradingJournal = () => {
       setLoading(true);
       const response = await fetch(API_URL, {
         headers: {
-          'x-user-id': user?.id,
-          'x-trading-mode': tradingMode
+          'x-user-id': user?.id
         }
       });
       if (response.ok) {
@@ -132,8 +130,7 @@ const TradingJournal = () => {
           setup: t.setup,
           target: parseFloat(t.target),
           stopLoss: parseFloat(t.stop_loss),
-          screenshots: typeof t.screenshots === 'string' ? JSON.parse(t.screenshots) : (t.screenshots || []),
-          mode: t.mode || 'live'
+          screenshots: typeof t.screenshots === 'string' ? JSON.parse(t.screenshots) : (t.screenshots || [])
         }));
         setTrades(formattedTrades);
       }
@@ -148,7 +145,7 @@ const TradingJournal = () => {
     if (user?.id) {
       loadTrades();
     }
-  }, [user?.id, tradingMode]);
+  }, [user?.id]);
 
   const calculateStats = () => {
     const completedTrades = trades.filter(t => t.status === 'WIN' || t.status === 'LOSS');
@@ -202,8 +199,7 @@ const TradingJournal = () => {
         entryPrice: entry,
         exitPrice: exit,
         target: target,
-        stopLoss: stopLoss,
-        mode: tradingMode
+        stopLoss: stopLoss
       };
 
       if (editingTrade) {
@@ -211,8 +207,7 @@ const TradingJournal = () => {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json',
-            'x-user-id': user?.id,
-            'x-trading-mode': tradingMode
+            'x-user-id': user?.id
           },
           body: JSON.stringify({ ...trade, id: editingTrade.id })
         });
@@ -222,8 +217,7 @@ const TradingJournal = () => {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'x-user-id': user?.id,
-            'x-trading-mode': tradingMode
+            'x-user-id': user?.id
           },
           body: JSON.stringify(trade)
         });
@@ -262,8 +256,7 @@ const TradingJournal = () => {
       await fetch(`${API_URL}?id=${id}`, { 
         method: 'DELETE',
         headers: {
-          'x-user-id': user?.id,
-          'x-trading-mode': tradingMode
+          'x-user-id': user?.id
         }
       });
       await loadTrades();
@@ -553,17 +546,8 @@ const TradingJournal = () => {
                     }}
                   />
                   <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">{user?.fullName || user?.firstName || 'User'}</span>
-                      {tradingMode === 'backtest' && (
-                        <span className="px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">
-                          🧪
-                        </span>
-                      )}
-                    </div>
-                    <div className={`text-xs ${t.textMuted}`}>
-                      {tradingMode === 'backtest' ? 'Backtest mode' : 'View menu'}
-                    </div>
+                    <div className="font-semibold">{user?.fullName || user?.firstName || 'User'}</div>
+                    <div className={`text-xs ${t.textMuted}`}>View menu</div>
                   </div>
                   <span className={`text-sm ${t.textMuted}`}>{showProfileMenu ? '▲' : '▼'}</span>
                 </div>
@@ -628,47 +612,6 @@ const TradingJournal = () => {
                           </div>
                         </button>
 
-                        {/* Trading Mode */}
-                        <div className={`px-4 py-3 rounded-lg`}>
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="text-xl">{tradingMode === 'live' ? '🟢' : '🧪'}</span>
-                            <div className="flex-1">
-                              <div className="font-semibold">Trading Mode</div>
-                              <div className={`text-xs ${t.textMuted}`}>
-                                {tradingMode === 'live' ? 'Live trading account' : 'Backtest & practice'}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => {
-                                setTradingMode('live');
-                                setShowProfileMenu(false);
-                              }}
-                              className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${
-                                tradingMode === 'live'
-                                  ? 'bg-green-600 text-white shadow-lg shadow-green-500/20'
-                                  : `${t.inputBg} ${t.textMuted} ${t.hover}`
-                              }`}
-                            >
-                              🟢 Live
-                            </button>
-                            <button
-                              onClick={() => {
-                                setTradingMode('backtest');
-                                setShowProfileMenu(false);
-                              }}
-                              className={`flex-1 py-2 px-3 rounded-lg font-semibold text-xs transition-all ${
-                                tradingMode === 'backtest'
-                                  ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/20'
-                                  : `${t.inputBg} ${t.textMuted} ${t.hover}`
-                              }`}
-                            >
-                              🧪 Backtest
-                            </button>
-                          </div>
-                        </div>
-
                         {/* Divider */}
                         <div className={`border-t ${t.border} my-1`}></div>
 
@@ -695,31 +638,6 @@ const TradingJournal = () => {
 
             {/* Main Content */}
             <div className="ml-64 p-6 overflow-auto">
-              {/* Backtest Mode Banner */}
-              {tradingMode === 'backtest' && (
-                <div className="mb-6 bg-gradient-to-r from-orange-900/30 to-orange-800/30 border border-orange-500/50 rounded-xl p-4 shadow-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                        <span className="text-2xl">🧪</span>
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-orange-400">Backtest Mode Active</div>
-                        <div className={`text-sm ${t.textMuted}`}>
-                          All trades are simulated. Your live account is unaffected.
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setTradingMode('live')}
-                      className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg transition-colors"
-                    >
-                      Switch to Live
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {activeView === 'dashboard' && (
                 <>
                   {/* Stats Grid */}
