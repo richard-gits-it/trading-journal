@@ -19,7 +19,6 @@ export default async function handler(req, res) {
     `);
 
     if (checkUserIdColumn.rows.length === 0) {
-      // Add user_id column if it doesn't exist
       await client.query(`
         ALTER TABLE trades ADD COLUMN user_id VARCHAR(255)
       `);
@@ -34,7 +33,6 @@ export default async function handler(req, res) {
     `);
 
     if (checkExitDateColumn.rows.length === 0) {
-      // Add exit_date column if it doesn't exist
       await client.query(`
         ALTER TABLE trades ADD COLUMN exit_date VARCHAR(10)
       `);
@@ -49,11 +47,30 @@ export default async function handler(req, res) {
     `);
 
     if (checkExitTimeColumn.rows.length === 0) {
-      // Add exit_time column if it doesn't exist
       await client.query(`
         ALTER TABLE trades ADD COLUMN exit_time VARCHAR(10)
       `);
       console.log('Added exit_time column');
+    }
+
+    // Check if mode column exists
+    const checkModeColumn = await client.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name='trades' AND column_name='mode'
+    `);
+
+    if (checkModeColumn.rows.length === 0) {
+      await client.query(`
+        ALTER TABLE trades ADD COLUMN mode VARCHAR(20) DEFAULT 'live'
+      `);
+      console.log('Added mode column');
+      
+      // Set all existing trades to 'live' mode
+      await client.query(`
+        UPDATE trades SET mode = 'live' WHERE mode IS NULL
+      `);
+      console.log('Set existing trades to live mode');
     }
 
     // Create trades table with all columns
@@ -61,6 +78,7 @@ export default async function handler(req, res) {
       CREATE TABLE IF NOT EXISTS trades (
         id SERIAL PRIMARY KEY,
         user_id VARCHAR(255),
+        mode VARCHAR(20) DEFAULT 'live',
         date VARCHAR(10),
         time VARCHAR(10),
         exit_date VARCHAR(10),
@@ -94,12 +112,21 @@ export default async function handler(req, res) {
       CREATE INDEX IF NOT EXISTS idx_trades_date ON trades(date DESC)
     `);
 
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_trades_mode ON trades(mode)
+    `);
+
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_trades_user_mode ON trades(user_id, mode)
+    `);
+
     res.status(200).json({ 
-      message: 'Database initialized successfully with exit date/time tracking',
+      message: 'Database initialized successfully with backtest mode support',
       updates: {
         userIdColumn: checkUserIdColumn.rows.length > 0 ? 'Already exists' : 'Just added',
         exitDateColumn: checkExitDateColumn.rows.length > 0 ? 'Already exists' : 'Just added',
-        exitTimeColumn: checkExitTimeColumn.rows.length > 0 ? 'Already exists' : 'Just added'
+        exitTimeColumn: checkExitTimeColumn.rows.length > 0 ? 'Already exists' : 'Just added',
+        modeColumn: checkModeColumn.rows.length > 0 ? 'Already exists' : 'Just added'
       }
     });
 
