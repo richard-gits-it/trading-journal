@@ -25,6 +25,8 @@ const TradingJournal = () => {
   const [newTrade, setNewTrade] = useState({
     date: new Date().toISOString().split('T')[0],
     time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    exitDate: '',
+    exitTime: '',
     symbol: '',
     side: 'BUY',
     quantity: 1,
@@ -109,6 +111,8 @@ const TradingJournal = () => {
           id: t.id,
           date: t.date,
           time: t.time,
+          exitDate: t.exit_date || '',
+          exitTime: t.exit_time || '',
           symbol: t.symbol,
           side: t.side,
           quantity: t.quantity,
@@ -222,6 +226,8 @@ const TradingJournal = () => {
       setNewTrade({
         date: new Date().toISOString().split('T')[0],
         time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        exitDate: '',
+        exitTime: '',
         symbol: '',
         side: 'BUY',
         quantity: 1,
@@ -260,6 +266,8 @@ const TradingJournal = () => {
   const editTrade = (trade) => {
     setNewTrade({
       ...trade,
+      exitDate: trade.exitDate || '',
+      exitTime: trade.exitTime || '',
       tags: trade.tags || [],
       screenshots: trade.screenshots || [],
       market: trade.market || 'FUTURES'
@@ -1089,15 +1097,35 @@ const TradingJournal = () => {
                             className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
+                      </div>
 
+                      {/* Entry and Exit Date/Time in separate row */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                         <div>
-                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Date & Time</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Entry Date & Time</label>
                           <input
                             type="datetime-local"
                             value={`${newTrade.date}T${newTrade.time}`}
                             onChange={(e) => {
                               const [date, time] = e.target.value.split('T');
                               setNewTrade({...newTrade, date, time});
+                            }}
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
+                          />
+                        </div>
+
+                        <div>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Exit Date & Time (Optional)</label>
+                          <input
+                            type="datetime-local"
+                            value={newTrade.exitDate && newTrade.exitTime ? `${newTrade.exitDate}T${newTrade.exitTime}` : ''}
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const [exitDate, exitTime] = e.target.value.split('T');
+                                setNewTrade({...newTrade, exitDate, exitTime});
+                              } else {
+                                setNewTrade({...newTrade, exitDate: '', exitTime: ''});
+                              }
                             }}
                             className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
