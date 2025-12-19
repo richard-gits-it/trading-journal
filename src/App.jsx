@@ -1203,7 +1203,7 @@ const TradingJournal = () => {
                     {newTrade.pnl !== '' && (
                       <div className={`${t.inputBg} rounded-lg p-6 border ${t.borderSolid}`}>
                         <h3 className="text-lg font-semibold mb-4 text-blue-400">Trade Summary</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                           <div>
                             <div className={`text-sm ${t.textMuted} mb-1`}>P&L</div>
                             <div className={`text-2xl font-bold ${
@@ -1243,6 +1243,49 @@ const TradingJournal = () => {
                             </div>
                             <div className={`text-xs ${t.textDim} mt-1`}>
                               (Entry→Target) ÷ (Entry→Stop)
+                            </div>
+                          </div>
+                          <div>
+                            <div className={`text-sm ${t.textMuted} mb-1`}>Trade Duration</div>
+                            <div className="text-2xl font-bold text-cyan-400">
+                              {(() => {
+                                if (!newTrade.date || !newTrade.time || !newTrade.exitDate || !newTrade.exitTime) {
+                                  return '-';
+                                }
+                                
+                                try {
+                                  const entryDateTime = new Date(`${newTrade.date}T${newTrade.time}`);
+                                  const exitDateTime = new Date(`${newTrade.exitDate}T${newTrade.exitTime}`);
+                                  
+                                  if (isNaN(entryDateTime.getTime()) || isNaN(exitDateTime.getTime())) {
+                                    return '-';
+                                  }
+                                  
+                                  const diffMs = exitDateTime - entryDateTime;
+                                  
+                                  if (diffMs < 0) {
+                                    return 'Invalid';
+                                  }
+                                  
+                                  const diffMinutes = Math.floor(diffMs / 60000);
+                                  const days = Math.floor(diffMinutes / 1440);
+                                  const hours = Math.floor((diffMinutes % 1440) / 60);
+                                  const minutes = diffMinutes % 60;
+                                  
+                                  if (days > 0) {
+                                    return `${days}d ${hours}h ${minutes}m`;
+                                  } else if (hours > 0) {
+                                    return `${hours}h ${minutes}m`;
+                                  } else {
+                                    return `${minutes}m`;
+                                  }
+                                } catch (error) {
+                                  return '-';
+                                }
+                              })()}
+                            </div>
+                            <div className={`text-xs ${t.textDim} mt-1`}>
+                              Entry to Exit
                             </div>
                           </div>
                         </div>
