@@ -19,6 +19,7 @@ const TradingJournal = () => {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   
   const [newTrade, setNewTrade] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -35,7 +36,8 @@ const TradingJournal = () => {
     notes: '',
     confidence: 5,
     setup: '',
-    screenshots: []
+    screenshots: [],
+    market: 'FUTURES'
   });
 
   // Theme configuration
@@ -136,7 +138,7 @@ const TradingJournal = () => {
     if (user?.id) {
       loadTrades();
     }
-  }, [user?.id]); // Wait for user to be loaded
+  }, [user?.id]);
 
   const calculateStats = () => {
     const completedTrades = trades.filter(t => t.status === 'WIN' || t.status === 'LOSS');
@@ -231,7 +233,8 @@ const TradingJournal = () => {
         notes: '',
         confidence: 5,
         setup: '',
-        screenshots: []
+        screenshots: [],
+        market: 'FUTURES'
       });
     } catch (error) {
       console.error('Error saving trade:', error);
@@ -257,7 +260,8 @@ const TradingJournal = () => {
     setNewTrade({
       ...trade,
       tags: trade.tags || [],
-      screenshots: trade.screenshots || []
+      screenshots: trade.screenshots || [],
+      market: trade.market || 'FUTURES'
     });
     setEditingTrade(trade);
     setShowNewTrade(true);
@@ -348,7 +352,6 @@ const TradingJournal = () => {
     }
   };
 
-  // Login Screen (Shown when signed out)
   return (
     <>
       <SignedOut>
@@ -436,41 +439,12 @@ const TradingJournal = () => {
                 </div>
               </nav>
 
-              <div className={`p-4 border-t ${t.border} space-y-2`}>
-                {/* Theme Toggle */}
-                <button
-                  onClick={toggleTheme}
-                  className={`w-full ${t.inputBg} border ${t.border} px-4 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all ${t.hover}`}
+              <div className={`p-4 border-t ${t.border} relative`}>
+                {/* Profile Area - Clickable */}
+                <div 
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className={`flex items-center gap-3 p-3 rounded-lg ${t.hover} cursor-pointer transition-all`}
                 >
-                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-                </button>
-
-                <button
-                  onClick={() => setShowNewTrade(true)}
-                  className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 px-6 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20 text-white"
-                >
-                  <Plus className="w-5 h-5" />
-                  New Trade
-                </button>
-                
-                <div className="flex gap-2">
-                  <button
-                    onClick={exportTrades}
-                    className={`flex-1 px-3 py-2 ${t.inputBg} border ${t.border} ${t.hover} rounded-lg text-xs font-semibold transition-colors`}
-                  >
-                    📤 Export
-                  </button>
-                  <label className="flex-1">
-                    <input type="file" accept=".json" onChange={importTrades} className="hidden" />
-                    <div className={`px-3 py-2 ${t.inputBg} border ${t.border} ${t.hover} rounded-lg text-xs font-semibold transition-colors text-center cursor-pointer`}>
-                      📥 Import
-                    </div>
-                  </label>
-                </div>
-
-                {/* User Button (Clerk) */}
-                <div className="flex items-center justify-center pt-2">
                   <UserButton 
                     afterSignOutUrl="/"
                     appearance={{
@@ -482,7 +456,91 @@ const TradingJournal = () => {
                       }
                     }}
                   />
+                  <div className="flex-1">
+                    <div className="font-semibold">{user?.fullName || user?.firstName || 'User'}</div>
+                    <div className={`text-xs ${t.textMuted}`}>View menu</div>
+                  </div>
+                  <span className={`text-sm ${t.textMuted}`}>{showProfileMenu ? '▲' : '▼'}</span>
                 </div>
+
+                {/* Dropdown Menu */}
+                {showProfileMenu && (
+                  <>
+                    {/* Backdrop to close menu */}
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowProfileMenu(false)}
+                    />
+                    
+                    {/* Menu Content */}
+                    <div className={`absolute bottom-full left-4 right-4 mb-2 ${t.cardBg} border ${t.border} rounded-xl shadow-2xl z-50 overflow-hidden`}>
+                      <div className="p-2 space-y-1">
+                        {/* New Trade */}
+                        <button
+                          onClick={() => {
+                            setShowNewTrade(true);
+                            setShowProfileMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${t.hover} transition-colors text-left`}
+                        >
+                          <Plus className="w-5 h-5 text-blue-400" />
+                          <div>
+                            <div className="font-semibold">New Trade</div>
+                            <div className={`text-xs ${t.textMuted}`}>Record a new trade</div>
+                          </div>
+                        </button>
+
+                        {/* Export */}
+                        <button
+                          onClick={() => {
+                            exportTrades();
+                            setShowProfileMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${t.hover} transition-colors text-left`}
+                        >
+                          <span className="text-xl">📤</span>
+                          <div>
+                            <div className="font-semibold">Export Trades</div>
+                            <div className={`text-xs ${t.textMuted}`}>Download as JSON</div>
+                          </div>
+                        </button>
+
+                        {/* Import */}
+                        <label className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${t.hover} transition-colors cursor-pointer`}>
+                          <input 
+                            type="file" 
+                            accept=".json" 
+                            onChange={(e) => {
+                              importTrades(e);
+                              setShowProfileMenu(false);
+                            }} 
+                            className="hidden" 
+                          />
+                          <span className="text-xl">📥</span>
+                          <div>
+                            <div className="font-semibold">Import Trades</div>
+                            <div className={`text-xs ${t.textMuted}`}>JSON format only</div>
+                          </div>
+                        </label>
+
+                        {/* Theme Toggle */}
+                        <button
+                          onClick={() => {
+                            toggleTheme();
+                            setShowProfileMenu(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${t.hover} transition-colors text-left`}
+                        >
+                          {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-400" />}
+                          <div>
+                            <div className="font-semibold">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</div>
+                            <div className={`text-xs ${t.textMuted}`}>Switch theme</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -924,7 +982,7 @@ const TradingJournal = () => {
               )}
             </div>
 
-            {/* New Trade Modal - Keeping minimal for token limits, same as before */}
+            {/* New Trade Modal */}
             {showNewTrade && (
               <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
                 <div className="bg-slate-800 rounded-2xl max-w-4xl w-full my-8 border border-slate-700 shadow-2xl">
@@ -940,7 +998,7 @@ const TradingJournal = () => {
                       <X className="w-6 h-6" />
                     </button>
                   </div>
-      
+
                   <div className="p-6 space-y-6">
                     {/* General Info */}
                     <div>
@@ -971,7 +1029,7 @@ const TradingJournal = () => {
                             className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-      
+
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">Setup</label>
                           <input
@@ -982,7 +1040,7 @@ const TradingJournal = () => {
                             className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-      
+
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">Side</label>
                           <div className="flex gap-2">
@@ -1008,7 +1066,7 @@ const TradingJournal = () => {
                             </button>
                           </div>
                         </div>
-      
+
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">Quantity</label>
                           <input
@@ -1018,7 +1076,7 @@ const TradingJournal = () => {
                             className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-      
+
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">Date & Time</label>
                           <input
@@ -1033,11 +1091,10 @@ const TradingJournal = () => {
                         </div>
                       </div>
                     </div>
-      
+
                     {/* Price Info */}
                     <div>
                       <h3 className="text-lg font-semibold mb-4 text-blue-400">Pricing & P&L</h3>
-      
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">Entry Price</label>
@@ -1050,7 +1107,7 @@ const TradingJournal = () => {
                             className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-      
+
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">Exit Price</label>
                           <input
@@ -1062,7 +1119,7 @@ const TradingJournal = () => {
                             className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-      
+
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">Target</label>
                           <input
@@ -1074,7 +1131,7 @@ const TradingJournal = () => {
                             className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-      
+
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">Stop Loss</label>
                           <input
@@ -1086,7 +1143,7 @@ const TradingJournal = () => {
                             className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-      
+
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">P&L (Manual)</label>
                           <input
@@ -1100,7 +1157,7 @@ const TradingJournal = () => {
                         </div>
                       </div>
                     </div>
-      
+
                     {/* P&L & RR Display */}
                     {newTrade.pnl !== '' && (
                       <div className="bg-slate-700/30 rounded-lg p-6 border border-slate-600">
@@ -1150,7 +1207,7 @@ const TradingJournal = () => {
                         </div>
                       </div>
                     )}
-      
+
                     {/* Journal */}
                     <div>
                       <h3 className="text-lg font-semibold mb-4 text-blue-400">Journal</h3>
@@ -1165,7 +1222,7 @@ const TradingJournal = () => {
                             className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </div>
-      
+
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">Notes</label>
                           <textarea
@@ -1220,7 +1277,7 @@ const TradingJournal = () => {
                             </div>
                           )}
                         </div>
-      
+
                         <div>
                           <label className="block text-sm font-medium text-slate-400 mb-2">
                             Confidence: {newTrade.confidence}
@@ -1241,7 +1298,7 @@ const TradingJournal = () => {
                         </div>
                       </div>
                     </div>
-      
+
                     {/* Actions */}
                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
                       <button
