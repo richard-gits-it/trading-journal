@@ -19,6 +19,7 @@ const TradingJournal = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [statsFilterTags, setStatsFilterTags] = useState([]);
   const [statsFilterSetup, setStatsFilterSetup] = useState('all');
+  const [tradingMode, setTradingMode] = useState('live'); // 'live' or 'backtest'
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
@@ -104,7 +105,8 @@ const TradingJournal = () => {
       setLoading(true);
       const response = await fetch(API_URL, {
         headers: {
-          'x-user-id': user?.id
+          'x-user-id': user?.id,
+          'x-trading-mode': tradingMode
         }
       });
       if (response.ok) {
@@ -130,7 +132,8 @@ const TradingJournal = () => {
           setup: t.setup,
           target: parseFloat(t.target),
           stopLoss: parseFloat(t.stop_loss),
-          screenshots: typeof t.screenshots === 'string' ? JSON.parse(t.screenshots) : (t.screenshots || [])
+          screenshots: typeof t.screenshots === 'string' ? JSON.parse(t.screenshots) : (t.screenshots || []),
+          mode: t.mode || 'live'
         }));
         setTrades(formattedTrades);
       }
@@ -145,7 +148,7 @@ const TradingJournal = () => {
     if (user?.id) {
       loadTrades();
     }
-  }, [user?.id]);
+  }, [user?.id, tradingMode]);
 
   const calculateStats = () => {
     const completedTrades = trades.filter(t => t.status === 'WIN' || t.status === 'LOSS');
@@ -199,7 +202,8 @@ const TradingJournal = () => {
         entryPrice: entry,
         exitPrice: exit,
         target: target,
-        stopLoss: stopLoss
+        stopLoss: stopLoss,
+        mode: tradingMode
       };
 
       if (editingTrade) {
@@ -207,7 +211,8 @@ const TradingJournal = () => {
           method: 'PUT',
           headers: { 
             'Content-Type': 'application/json',
-            'x-user-id': user?.id
+            'x-user-id': user?.id,
+            'x-trading-mode': tradingMode
           },
           body: JSON.stringify({ ...trade, id: editingTrade.id })
         });
@@ -217,7 +222,8 @@ const TradingJournal = () => {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
-            'x-user-id': user?.id
+            'x-user-id': user?.id,
+            'x-trading-mode': tradingMode
           },
           body: JSON.stringify(trade)
         });
@@ -256,7 +262,8 @@ const TradingJournal = () => {
       await fetch(`${API_URL}?id=${id}`, { 
         method: 'DELETE',
         headers: {
-          'x-user-id': user?.id
+          'x-user-id': user?.id,
+          'x-trading-mode': tradingMode
         }
       });
       await loadTrades();
@@ -494,6 +501,40 @@ const TradingJournal = () => {
                   </div>
                 </div>
 
+                {/* Trading Mode Toggle */}
+                <div className={`mt-4 ${t.cardBg} rounded-lg p-3 border ${tradingMode === 'backtest' ? 'border-orange-500/50' : t.border}`}>
+                  <div className={`text-xs ${t.textMuted} mb-2 flex items-center justify-between`}>
+                    <span>Trading Mode</span>
+                    {tradingMode === 'backtest' && (
+                      <span className="px-2 py-0.5 bg-orange-500/20 text-orange-400 rounded text-xs font-semibold">
+                        BACKTEST
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setTradingMode('live')}
+                      className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-all ${
+                        tradingMode === 'live'
+                          ? 'bg-green-600 text-white shadow-lg shadow-green-500/30'
+                          : `${t.inputBg} ${t.textMuted} ${t.hover}`
+                      }`}
+                    >
+                      🟢 Live
+                    </button>
+                    <button
+                      onClick={() => setTradingMode('backtest')}
+                      className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-all ${
+                        tradingMode === 'backtest'
+                          ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/30'
+                          : `${t.inputBg} ${t.textMuted} ${t.hover}`
+                      }`}
+                    >
+                      🧪 Backtest
+                    </button>
+                  </div>
+                </div>
+
                 {/* New Trade Button */}
                 <button
                   onClick={() => setShowNewTrade(true)}
@@ -638,6 +679,31 @@ const TradingJournal = () => {
 
             {/* Main Content */}
             <div className="ml-64 p-6 overflow-auto">
+              {/* Backtest Mode Banner */}
+              {tradingMode === 'backtest' && (
+                <div className="mb-6 bg-gradient-to-r from-orange-900/30 to-orange-800/30 border border-orange-500/50 rounded-xl p-4 shadow-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-orange-500/20 rounded-lg flex items-center justify-center">
+                        <span className="text-2xl">🧪</span>
+                      </div>
+                      <div>
+                        <div className="text-lg font-bold text-orange-400">Backtest Mode Active</div>
+                        <div className={`text-sm ${t.textMuted}`}>
+                          All trades are simulated. Your live account is unaffected.
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setTradingMode('live')}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-semibold rounded-lg transition-colors"
+                    >
+                      Switch to Live
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {activeView === 'dashboard' && (
                 <>
                   {/* Stats Grid */}
