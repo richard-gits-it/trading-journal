@@ -12,13 +12,13 @@ export default async function handler(req, res) {
     client = await pool.connect();
     
     // Check if user_id column exists
-    const checkColumn = await client.query(`
+    const checkUserIdColumn = await client.query(`
       SELECT column_name 
       FROM information_schema.columns 
       WHERE table_name='trades' AND column_name='user_id'
     `);
 
-    if (checkColumn.rows.length === 0) {
+    if (checkUserIdColumn.rows.length === 0) {
       // Add user_id column if it doesn't exist
       await client.query(`
         ALTER TABLE trades ADD COLUMN user_id VARCHAR(255)
@@ -26,13 +26,45 @@ export default async function handler(req, res) {
       console.log('Added user_id column');
     }
 
-    // Create trades table with user_id column
+    // Check if exit_date column exists
+    const checkExitDateColumn = await client.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name='trades' AND column_name='exit_date'
+    `);
+
+    if (checkExitDateColumn.rows.length === 0) {
+      // Add exit_date column if it doesn't exist
+      await client.query(`
+        ALTER TABLE trades ADD COLUMN exit_date VARCHAR(10)
+      `);
+      console.log('Added exit_date column');
+    }
+
+    // Check if exit_time column exists
+    const checkExitTimeColumn = await client.query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name='trades' AND column_name='exit_time'
+    `);
+
+    if (checkExitTimeColumn.rows.length === 0) {
+      // Add exit_time column if it doesn't exist
+      await client.query(`
+        ALTER TABLE trades ADD COLUMN exit_time VARCHAR(10)
+      `);
+      console.log('Added exit_time column');
+    }
+
+    // Create trades table with all columns
     await client.query(`
       CREATE TABLE IF NOT EXISTS trades (
         id SERIAL PRIMARY KEY,
         user_id VARCHAR(255),
         date VARCHAR(10),
         time VARCHAR(10),
+        exit_date VARCHAR(10),
+        exit_time VARCHAR(10),
         symbol VARCHAR(10),
         side VARCHAR(4),
         quantity INTEGER,
@@ -63,9 +95,12 @@ export default async function handler(req, res) {
     `);
 
     res.status(200).json({ 
-      message: 'Database initialized successfully with user isolation',
-      note: 'Each user will now have their own private trades',
-      userIdColumn: checkColumn.rows.length > 0 ? 'Already exists' : 'Just added'
+      message: 'Database initialized successfully with exit date/time tracking',
+      updates: {
+        userIdColumn: checkUserIdColumn.rows.length > 0 ? 'Already exists' : 'Just added',
+        exitDateColumn: checkExitDateColumn.rows.length > 0 ? 'Already exists' : 'Just added',
+        exitTimeColumn: checkExitTimeColumn.rows.length > 0 ? 'Already exists' : 'Just added'
+      }
     });
 
   } catch (error) {
