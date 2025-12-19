@@ -17,7 +17,7 @@ const TradingJournal = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedDate, setSelectedDate] = useState(null);
-  const [statsFilterTag, setStatsFilterTag] = useState('all');
+  const [statsFilterTags, setStatsFilterTags] = useState([]);
   const [statsFilterSetup, setStatsFilterSetup] = useState('all');
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
@@ -370,11 +370,11 @@ const TradingJournal = () => {
   // Get filtered trades based on stats filters
   const getFilteredTrades = () => {
     return trades.filter(trade => {
-      const matchesTag = statsFilterTag === 'all' || 
-        (trade.tags && trade.tags.includes(statsFilterTag));
+      const matchesTags = statsFilterTags.length === 0 || 
+        (trade.tags && trade.tags.some(tag => statsFilterTags.includes(tag)));
       const matchesSetup = statsFilterSetup === 'all' || 
         trade.setup === statsFilterSetup;
-      return matchesTag && matchesSetup;
+      return matchesTags && matchesSetup;
     });
   };
 
@@ -1079,67 +1079,95 @@ const TradingJournal = () => {
                   <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
                     <h3 className="text-2xl font-bold mb-6">Performance Analytics</h3>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Tag Filter */}
-                      <div>
-                        <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Filter by Tag</label>
-                        <select
-                          value={statsFilterTag}
-                          onChange={(e) => setStatsFilterTag(e.target.value)}
-                          className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                        >
-                          <option value="all">All Tags</option>
-                          {getAllTags().map(tag => (
-                            <option key={tag} value={tag}>{tag}</option>
-                          ))}
-                        </select>
+                    {/* Tag Filter - Multi-select */}
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <label className={`block text-sm font-medium ${t.textMuted}`}>Filter by Tags</label>
+                        {statsFilterTags.length > 0 && (
+                          <button
+                            onClick={() => setStatsFilterTags([])}
+                            className={`text-xs ${t.textMuted} ${t.hover} px-2 py-1 rounded transition-colors`}
+                          >
+                            Clear Tags
+                          </button>
+                        )}
                       </div>
-
-                      {/* Setup Filter */}
-                      <div>
-                        <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Filter by Setup</label>
-                        <select
-                          value={statsFilterSetup}
-                          onChange={(e) => setStatsFilterSetup(e.target.value)}
-                          className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                        >
-                          <option value="all">All Setups</option>
-                          {getAllSetups().map(setup => (
-                            <option key={setup} value={setup}>{setup}</option>
-                          ))}
-                        </select>
+                      <div className="flex flex-wrap gap-2">
+                        {getAllTags().length > 0 ? (
+                          getAllTags().map(tag => (
+                            <button
+                              key={tag}
+                              onClick={() => {
+                                if (statsFilterTags.includes(tag)) {
+                                  setStatsFilterTags(statsFilterTags.filter(t => t !== tag));
+                                } else {
+                                  setStatsFilterTags([...statsFilterTags, tag]);
+                                }
+                              }}
+                              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                                statsFilterTags.includes(tag)
+                                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                                  : `${t.inputBg} ${t.textMuted} ${t.hover}`
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                          ))
+                        ) : (
+                          <div className={`text-sm ${t.textMuted} italic`}>No tags found. Add tags to your trades to use this filter.</div>
+                        )}
                       </div>
                     </div>
 
+                    {/* Setup Filter - Single select */}
+                    <div>
+                      <label className={`block text-sm font-medium ${t.textMuted} mb-3`}>Filter by Setup</label>
+                      <select
+                        value={statsFilterSetup}
+                        onChange={(e) => setStatsFilterSetup(e.target.value)}
+                        className={`w-full md:w-auto ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      >
+                        <option value="all">All Setups</option>
+                        {getAllSetups().map(setup => (
+                          <option key={setup} value={setup}>{setup}</option>
+                        ))}
+                      </select>
+                    </div>
+
                     {/* Active Filters Display */}
-                    {(statsFilterTag !== 'all' || statsFilterSetup !== 'all') && (
-                      <div className="mt-4 flex items-center gap-2 flex-wrap">
-                        <span className={`text-sm ${t.textMuted}`}>Active Filters:</span>
-                        {statsFilterTag !== 'all' && (
-                          <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm flex items-center gap-2">
-                            Tag: {statsFilterTag}
-                            <button onClick={() => setStatsFilterTag('all')} className="hover:text-blue-300">
-                              <X className="w-3 h-3" />
-                            </button>
-                          </span>
-                        )}
-                        {statsFilterSetup !== 'all' && (
-                          <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm flex items-center gap-2">
-                            Setup: {statsFilterSetup}
-                            <button onClick={() => setStatsFilterSetup('all')} className="hover:text-cyan-300">
-                              <X className="w-3 h-3" />
-                            </button>
-                          </span>
-                        )}
-                        <button
-                          onClick={() => {
-                            setStatsFilterTag('all');
-                            setStatsFilterSetup('all');
-                          }}
-                          className={`px-3 py-1 ${t.inputBg} ${t.hover} rounded-lg text-sm transition-colors`}
-                        >
-                          Clear All
-                        </button>
+                    {(statsFilterTags.length > 0 || statsFilterSetup !== 'all') && (
+                      <div className="mt-6 pt-6 border-t border-zinc-800">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`text-sm ${t.textMuted} font-semibold`}>Active Filters:</span>
+                          {statsFilterTags.map(tag => (
+                            <span key={tag} className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm flex items-center gap-2">
+                              {tag}
+                              <button 
+                                onClick={() => setStatsFilterTags(statsFilterTags.filter(t => t !== tag))} 
+                                className="hover:text-blue-300"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          ))}
+                          {statsFilterSetup !== 'all' && (
+                            <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm flex items-center gap-2">
+                              Setup: {statsFilterSetup}
+                              <button onClick={() => setStatsFilterSetup('all')} className="hover:text-cyan-300">
+                                <X className="w-3 h-3" />
+                              </button>
+                            </span>
+                          )}
+                          <button
+                            onClick={() => {
+                              setStatsFilterTags([]);
+                              setStatsFilterSetup('all');
+                            }}
+                            className={`px-3 py-1 ${t.inputBg} ${t.hover} rounded-lg text-sm transition-colors font-medium`}
+                          >
+                            Clear All
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1273,7 +1301,7 @@ const TradingJournal = () => {
                         </div>
 
                         {/* Filtered Trades List */}
-                        {(statsFilterTag !== 'all' || statsFilterSetup !== 'all') && (
+                        {(statsFilterTags.length > 0 || statsFilterSetup !== 'all') && (
                           <div className={`${t.cardBg} backdrop-blur-sm rounded-xl border ${t.border} shadow-lg overflow-hidden`}>
                             <div className={`p-6 border-b ${t.border}`}>
                               <h3 className="text-lg font-semibold">
