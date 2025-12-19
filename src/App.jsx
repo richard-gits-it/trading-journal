@@ -44,23 +44,23 @@ const TradingJournal = () => {
   // Theme configuration
   const themes = {
     dark: {
-      mainBg: 'from-slate-900 via-slate-800 to-slate-900',
-      sidebarBg: 'bg-slate-800/50',
-      cardBg: 'bg-slate-800/50',
-      inputBg: 'bg-slate-700/50',
-      modalBg: 'bg-slate-800',
-      border: 'border-slate-700/50',
-      borderSolid: 'border-slate-700',
+      mainBg: 'from-black via-zinc-900 to-black',
+      sidebarBg: 'bg-zinc-900/95',
+      cardBg: 'bg-zinc-900/90',
+      inputBg: 'bg-zinc-800/80',
+      modalBg: 'bg-zinc-900',
+      border: 'border-zinc-800/50',
+      borderSolid: 'border-zinc-700',
       text: 'text-white',
-      textMuted: 'text-slate-400',
-      textDim: 'text-slate-500',
-      hover: 'hover:bg-slate-700/50',
-      hoverCard: 'hover:bg-slate-700/20',
-      chartGrid: '#334155',
-      chartAxis: '#94a3b8',
+      textMuted: 'text-zinc-400',
+      textDim: 'text-zinc-500',
+      hover: 'hover:bg-zinc-800/70',
+      hoverCard: 'hover:bg-zinc-800/30',
+      chartGrid: '#27272a',
+      chartAxis: '#71717a',
       chartLine: '#3b82f6',
-      tooltipBg: '#1e293b',
-      tooltipBorder: '#334155',
+      tooltipBg: '#18181b',
+      tooltipBorder: '#27272a',
       tooltipText: '#fff'
     },
     light: {
@@ -372,12 +372,12 @@ const TradingJournal = () => {
               appearance={{
                 elements: {
                   formButtonPrimary: 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500',
-                  card: theme === 'dark' ? 'bg-slate-800' : 'bg-white',
+                  card: theme === 'dark' ? 'bg-zinc-900' : 'bg-white',
                   headerTitle: theme === 'dark' ? 'text-white' : 'text-slate-900',
-                  headerSubtitle: theme === 'dark' ? 'text-slate-400' : 'text-slate-600',
-                  socialButtonsBlockButton: theme === 'dark' ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-slate-100 text-slate-900 hover:bg-slate-200',
-                  formFieldLabel: theme === 'dark' ? 'text-slate-300' : 'text-slate-700',
-                  formFieldInput: theme === 'dark' ? 'bg-slate-700 border-slate-600 text-white' : 'bg-white border-slate-300 text-slate-900',
+                  headerSubtitle: theme === 'dark' ? 'text-zinc-400' : 'text-slate-600',
+                  socialButtonsBlockButton: theme === 'dark' ? 'bg-zinc-800 text-white hover:bg-zinc-700' : 'bg-slate-100 text-slate-900 hover:bg-slate-200',
+                  formFieldLabel: theme === 'dark' ? 'text-zinc-300' : 'text-slate-700',
+                  formFieldInput: theme === 'dark' ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-white border-slate-300 text-slate-900',
                   footerActionLink: 'text-blue-500 hover:text-blue-400'
                 }
               }}
@@ -460,9 +460,9 @@ const TradingJournal = () => {
                     appearance={{
                       elements: {
                         avatarBox: 'w-10 h-10',
-                        userButtonPopoverCard: theme === 'dark' ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200',
-                        userButtonPopoverActionButton: theme === 'dark' ? 'text-slate-300 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100',
-                        userButtonPopoverActionButtonText: theme === 'dark' ? 'text-slate-300' : 'text-slate-700'
+                        userButtonPopoverCard: theme === 'dark' ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200',
+                        userButtonPopoverActionButton: theme === 'dark' ? 'text-zinc-300 hover:bg-zinc-800' : 'text-slate-700 hover:bg-slate-100',
+                        userButtonPopoverActionButtonText: theme === 'dark' ? 'text-zinc-300' : 'text-slate-700'
                       }
                     }}
                   />
@@ -526,7 +526,7 @@ const TradingJournal = () => {
                           }}
                           className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg ${t.hover} transition-colors text-left`}
                         >
-                          {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-slate-400" />}
+                          {theme === 'dark' ? <Sun className="w-5 h-5 text-yellow-400" /> : <Moon className="w-5 h-5 text-zinc-600" />}
                           <div>
                             <div className="font-semibold">{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</div>
                             <div className={`text-xs ${t.textMuted}`}>Switch theme</div>
@@ -997,16 +997,16 @@ const TradingJournal = () => {
 
             {/* New Trade Modal */}
             {showNewTrade && (
-              <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-                <div className="bg-slate-800 rounded-2xl max-w-4xl w-full my-8 border border-slate-700 shadow-2xl">
-                  <div className="bg-slate-800 border-b border-slate-700 p-6 flex items-center justify-between rounded-t-2xl">
+              <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+                <div className={`${t.modalBg} rounded-2xl max-w-4xl w-full my-8 border ${t.borderSolid} shadow-2xl`}>
+                  <div className={`${t.modalBg} border-b ${t.borderSolid} p-6 flex items-center justify-between rounded-t-2xl`}>
                     <h2 className="text-2xl font-bold">{editingTrade ? 'Edit Trade' : 'New Trade'}</h2>
                     <button
                       onClick={() => {
                         setShowNewTrade(false);
                         setEditingTrade(null);
                       }}
-                      className="text-slate-400 hover:text-white transition-colors"
+                      className={`${t.textMuted} hover:text-white transition-colors`}
                     >
                       <X className="w-6 h-6" />
                     </button>
@@ -1018,11 +1018,11 @@ const TradingJournal = () => {
                       <h3 className="text-lg font-semibold mb-4 text-blue-400">General</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Market</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Market</label>
                           <select
                             value={newTrade.market || 'FUTURES'}
                             onChange={(e) => setNewTrade({...newTrade, market: e.target.value})}
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           >
                             <option>FUTURES</option>
                             <option>STOCKS</option>
@@ -1033,36 +1033,36 @@ const TradingJournal = () => {
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Symbol</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Symbol</label>
                           <input
                             type="text"
                             value={newTrade.symbol}
                             onChange={(e) => setNewTrade({...newTrade, symbol: e.target.value.toUpperCase()})}
                             placeholder="e.g., MGC"
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Setup</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Setup</label>
                           <input
                             type="text"
                             value={newTrade.setup}
                             onChange={(e) => setNewTrade({...newTrade, setup: e.target.value})}
                             placeholder="e.g., Support Bounce"
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Side</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Side</label>
                           <div className="flex gap-2">
                             <button
                               onClick={() => setNewTrade({...newTrade, side: 'BUY'})}
                               className={`flex-1 py-2.5 rounded-lg font-semibold transition-all ${
                                 newTrade.side === 'BUY'
                                   ? 'bg-green-600 text-white'
-                                  : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700'
+                                  : `${t.inputBg} ${t.textMuted} ${t.hover}`
                               }`}
                             >
                               BUY
@@ -1072,7 +1072,7 @@ const TradingJournal = () => {
                               className={`flex-1 py-2.5 rounded-lg font-semibold transition-all ${
                                 newTrade.side === 'SELL'
                                   ? 'bg-red-600 text-white'
-                                  : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700'
+                                  : `${t.inputBg} ${t.textMuted} ${t.hover}`
                               }`}
                             >
                               SELL
@@ -1081,17 +1081,17 @@ const TradingJournal = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Quantity</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Quantity</label>
                           <input
                             type="number"
                             value={newTrade.quantity}
                             onChange={(e) => setNewTrade({...newTrade, quantity: e.target.value})}
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Date & Time</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Date & Time</label>
                           <input
                             type="datetime-local"
                             value={`${newTrade.date}T${newTrade.time}`}
@@ -1099,7 +1099,7 @@ const TradingJournal = () => {
                               const [date, time] = e.target.value.split('T');
                               setNewTrade({...newTrade, date, time});
                             }}
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
                       </div>
@@ -1110,62 +1110,62 @@ const TradingJournal = () => {
                       <h3 className="text-lg font-semibold mb-4 text-blue-400">Pricing & P&L</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Entry Price</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Entry Price</label>
                           <input
                             type="number"
                             step="0.01"
                             value={newTrade.entryPrice}
                             onChange={(e) => setNewTrade({...newTrade, entryPrice: e.target.value})}
                             placeholder="0.00"
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Exit Price</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Exit Price</label>
                           <input
                             type="number"
                             step="0.01"
                             value={newTrade.exitPrice}
                             onChange={(e) => setNewTrade({...newTrade, exitPrice: e.target.value})}
                             placeholder="0.00"
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Target</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Target</label>
                           <input
                             type="number"
                             step="0.01"
                             value={newTrade.target}
                             onChange={(e) => setNewTrade({...newTrade, target: e.target.value})}
                             placeholder="0.00"
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Stop Loss</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Stop Loss</label>
                           <input
                             type="number"
                             step="0.01"
                             value={newTrade.stopLoss}
                             onChange={(e) => setNewTrade({...newTrade, stopLoss: e.target.value})}
                             placeholder="0.00"
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">P&L (Manual)</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>P&L (Manual)</label>
                           <input
                             type="number"
                             step="0.01"
                             value={newTrade.pnl}
                             onChange={(e) => setNewTrade({...newTrade, pnl: e.target.value})}
                             placeholder="0.00"
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
                       </div>
@@ -1173,11 +1173,11 @@ const TradingJournal = () => {
 
                     {/* P&L & RR Display */}
                     {newTrade.pnl !== '' && (
-                      <div className="bg-slate-700/30 rounded-lg p-6 border border-slate-600">
+                      <div className={`${t.inputBg} rounded-lg p-6 border ${t.borderSolid}`}>
                         <h3 className="text-lg font-semibold mb-4 text-blue-400">Trade Summary</h3>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <div className="text-sm text-slate-400 mb-1">P&L</div>
+                            <div className={`text-sm ${t.textMuted} mb-1`}>P&L</div>
                             <div className={`text-2xl font-bold ${
                               parseFloat(newTrade.pnl) >= 0 ? 'text-green-400' : 'text-red-400'
                             }`}>
@@ -1185,7 +1185,7 @@ const TradingJournal = () => {
                             </div>
                           </div>
                           <div>
-                            <div className="text-sm text-slate-400 mb-1">Return %</div>
+                            <div className={`text-sm ${t.textMuted} mb-1`}>Return %</div>
                             <div className={`text-2xl font-bold ${
                               (newTrade.entryPrice && parseFloat(newTrade.pnl) / (parseFloat(newTrade.entryPrice) * (parseFloat(newTrade.quantity) || 1)) * 100) >= 0
                                 ? 'text-green-400' 
@@ -1197,7 +1197,7 @@ const TradingJournal = () => {
                             </div>
                           </div>
                           <div>
-                            <div className="text-sm text-slate-400 mb-1">Risk/Reward Ratio</div>
+                            <div className={`text-sm ${t.textMuted} mb-1`}>Risk/Reward Ratio</div>
                             <div className="text-2xl font-bold text-blue-400">
                               {(() => {
                                 const entry = parseFloat(newTrade.entryPrice) || 0;
@@ -1213,7 +1213,7 @@ const TradingJournal = () => {
                                 return '-';
                               })()}
                             </div>
-                            <div className="text-xs text-slate-500 mt-1">
+                            <div className={`text-xs ${t.textDim} mt-1`}>
                               (Entry→Target) ÷ (Entry→Stop)
                             </div>
                           </div>
@@ -1226,18 +1226,18 @@ const TradingJournal = () => {
                       <h3 className="text-lg font-semibold mb-4 text-blue-400">Journal</h3>
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Tags</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Tags</label>
                           <input
                             type="text"
                             value={newTrade.tags?.join(', ')}
                             onChange={(e) => setNewTrade({...newTrade, tags: e.target.value.split(',').map(t => t.trim())})}
                             placeholder="Scalp, Momentum, Support"
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 ${t.text}`}
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">Notes</label>
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Notes</label>
                           <textarea
                             value={newTrade.notes}
                             onChange={(e) => setNewTrade({...newTrade, notes: e.target.value})}
@@ -1260,20 +1260,20 @@ const TradingJournal = () => {
                             }}
                             rows="4"
                             placeholder="Trade notes, strategy, what worked/didn't work... (Paste images with Ctrl+V)"
-                            className="w-full bg-slate-700/50 border border-slate-600 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                            className={`w-full ${t.inputBg} border ${t.borderSolid} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${t.text}`}
                           />
                           
                           {/* Screenshot Previews */}
                           {newTrade.screenshots && newTrade.screenshots.length > 0 && (
                             <div className="mt-3">
-                              <div className="text-sm text-slate-400 mb-2">Screenshots ({newTrade.screenshots.length})</div>
+                              <div className={`text-sm ${t.textMuted} mb-2`}>Screenshots ({newTrade.screenshots.length})</div>
                               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                                 {newTrade.screenshots.map((img, index) => (
                                   <div key={index} className="relative group">
                                     <img
                                       src={img}
                                       alt={`Screenshot ${index + 1}`}
-                                      className="w-full h-24 object-cover rounded-lg border border-slate-600"
+                                      className={`w-full h-24 object-cover rounded-lg border ${t.borderSolid}`}
                                     />
                                     <button
                                       onClick={() => {
@@ -1292,7 +1292,7 @@ const TradingJournal = () => {
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-slate-400 mb-2">
+                          <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>
                             Confidence: {newTrade.confidence}
                           </label>
                           <input
@@ -1303,7 +1303,7 @@ const TradingJournal = () => {
                             onChange={(e) => setNewTrade({...newTrade, confidence: parseInt(e.target.value)})}
                             className="w-full"
                           />
-                          <div className="flex justify-between text-xs text-slate-500 mt-1">
+                          <div className={`flex justify-between text-xs ${t.textDim} mt-1`}>
                             <span>0</span>
                             <span>5</span>
                             <span>10</span>
@@ -1313,13 +1313,13 @@ const TradingJournal = () => {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+                    <div className={`flex justify-end gap-3 pt-4 border-t ${t.borderSolid}`}>
                       <button
                         onClick={() => {
                           setShowNewTrade(false);
                           setEditingTrade(null);
                         }}
-                        className="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 rounded-lg font-semibold transition-colors"
+                        className={`px-6 py-2.5 ${t.inputBg} ${t.hover} rounded-lg font-semibold transition-colors`}
                       >
                         Cancel
                       </button>
