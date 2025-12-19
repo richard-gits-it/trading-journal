@@ -17,6 +17,8 @@ const TradingJournal = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [selectedDate, setSelectedDate] = useState(null);
+  const [statsFilterTag, setStatsFilterTag] = useState('all');
+  const [statsFilterSetup, setStatsFilterSetup] = useState('all');
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'dark';
   });
@@ -342,6 +344,75 @@ const TradingJournal = () => {
   const getDailyPnL = (dateStr) => getTradesForDate(dateStr).reduce((sum, t) => sum + (t.pnl || 0), 0);
   const formatCalendarDate = (year, month, day) => `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   const getMonthName = (month) => ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][month];
+  
+  // Get unique tags from all trades
+  const getAllTags = () => {
+    const tagsSet = new Set();
+    trades.forEach(trade => {
+      if (trade.tags && Array.isArray(trade.tags)) {
+        trade.tags.forEach(tag => tagsSet.add(tag));
+      }
+    });
+    return Array.from(tagsSet).sort();
+  };
+
+  // Get unique setups from all trades
+  const getAllSetups = () => {
+    const setupsSet = new Set();
+    trades.forEach(trade => {
+      if (trade.setup) {
+        setupsSet.add(trade.setup);
+      }
+    });
+    return Array.from(setupsSet).sort();
+  };
+
+  // Get filtered trades based on stats filters
+  const getFilteredTrades = () => {
+    return trades.filter(trade => {
+      const matchesTag = statsFilterTag === 'all' || 
+        (trade.tags && trade.tags.includes(statsFilterTag));
+      const matchesSetup = statsFilterSetup === 'all' || 
+        trade.setup === statsFilterSetup;
+      return matchesTag && matchesSetup;
+    });
+  };
+
+  // Calculate stats for filtered trades
+  const calculateFilteredStats = () => {
+    const filteredTrades = getFilteredTrades();
+    const completedTrades = filteredTrades.filter(t => t.status === 'WIN' || t.status === 'LOSS');
+    const wins = filteredTrades.filter(t => t.status === 'WIN');
+    const losses = filteredTrades.filter(t => t.status === 'LOSS');
+    
+    const totalPnL = completedTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    const winRate = completedTrades.length > 0 ? (wins.length / completedTrades.length) * 100 : 0;
+    const avgWin = wins.length > 0 ? wins.reduce((sum, t) => sum + t.pnl, 0) / wins.length : 0;
+    const avgLoss = losses.length > 0 ? losses.reduce((sum, t) => sum + Math.abs(t.pnl), 0) / losses.length : 0;
+    
+    const bestTrade = completedTrades.length > 0 
+      ? Math.max(...completedTrades.map(t => t.pnl || 0))
+      : 0;
+    const worstTrade = completedTrades.length > 0 
+      ? Math.min(...completedTrades.map(t => t.pnl || 0))
+      : 0;
+    
+    const profitFactor = avgLoss > 0 ? (avgWin * wins.length) / (avgLoss * losses.length) : 0;
+    
+    return {
+      totalTrades: completedTrades.length,
+      wins: wins.length,
+      losses: losses.length,
+      winRate: winRate.toFixed(0),
+      totalPnL: totalPnL.toFixed(2),
+      avgWin: avgWin.toFixed(2),
+      avgLoss: avgLoss.toFixed(2),
+      bestTrade: bestTrade.toFixed(2),
+      worstTrade: worstTrade.toFixed(2),
+      profitFactor: profitFactor.toFixed(2),
+      openTrades: filteredTrades.filter(t => !t.status).length
+    };
+  };
   
   const previousMonth = () => {
     if (currentMonth === 0) {
@@ -999,6 +1070,271 @@ const TradingJournal = () => {
                       );
                     })()}
                   </div>
+                </div>
+              )}
+
+              {activeView === 'stats' && (
+                <div className="space-y-6">
+                  {/* Filter Controls */}
+                  <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
+                    <h3 className="text-2xl font-bold mb-6">Performance Analytics</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Tag Filter */}
+                      <div>
+                        <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Filter by Tag</label>
+                        <select
+                          value={statsFilterTag}
+                          onChange={(e) => setStatsFilterTag(e.target.value)}
+                          className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        >
+                          <option value="all">All Tags</option>
+                          {getAllTags().map(tag => (
+                            <option key={tag} value={tag}>{tag}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Setup Filter */}
+                      <div>
+                        <label className={`block text-sm font-medium ${t.textMuted} mb-2`}>Filter by Setup</label>
+                        <select
+                          value={statsFilterSetup}
+                          onChange={(e) => setStatsFilterSetup(e.target.value)}
+                          className={`w-full ${t.inputBg} border ${t.border} rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        >
+                          <option value="all">All Setups</option>
+                          {getAllSetups().map(setup => (
+                            <option key={setup} value={setup}>{setup}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Active Filters Display */}
+                    {(statsFilterTag !== 'all' || statsFilterSetup !== 'all') && (
+                      <div className="mt-4 flex items-center gap-2 flex-wrap">
+                        <span className={`text-sm ${t.textMuted}`}>Active Filters:</span>
+                        {statsFilterTag !== 'all' && (
+                          <span className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-sm flex items-center gap-2">
+                            Tag: {statsFilterTag}
+                            <button onClick={() => setStatsFilterTag('all')} className="hover:text-blue-300">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        )}
+                        {statsFilterSetup !== 'all' && (
+                          <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-sm flex items-center gap-2">
+                            Setup: {statsFilterSetup}
+                            <button onClick={() => setStatsFilterSetup('all')} className="hover:text-cyan-300">
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        )}
+                        <button
+                          onClick={() => {
+                            setStatsFilterTag('all');
+                            setStatsFilterSetup('all');
+                          }}
+                          className={`px-3 py-1 ${t.inputBg} ${t.hover} rounded-lg text-sm transition-colors`}
+                        >
+                          Clear All
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Stats Grid */}
+                  {(() => {
+                    const filteredStats = calculateFilteredStats();
+                    return (
+                      <>
+                        {/* Primary Stats */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`${t.textMuted} text-sm`}>Total P&L</span>
+                              <div className={`w-10 h-10 ${parseFloat(filteredStats.totalPnL) >= 0 ? 'bg-green-500/10' : 'bg-red-500/10'} rounded-lg flex items-center justify-center`}>
+                                <DollarSign className={`w-5 h-5 ${parseFloat(filteredStats.totalPnL) >= 0 ? 'text-green-400' : 'text-red-400'}`} />
+                              </div>
+                            </div>
+                            <div className={`text-3xl font-bold ${parseFloat(filteredStats.totalPnL) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {parseFloat(filteredStats.totalPnL) < 0 ? '-' : ''}${Math.abs(parseFloat(filteredStats.totalPnL)).toFixed(2)}
+                            </div>
+                            <div className={`text-xs ${t.textDim} mt-1`}>From {filteredStats.totalTrades} trades</div>
+                          </div>
+
+                          <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`${t.textMuted} text-sm`}>Win Rate</span>
+                              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                                <TrendingUp className="w-5 h-5 text-green-400" />
+                              </div>
+                            </div>
+                            <div className="text-3xl font-bold text-green-400">{filteredStats.winRate}%</div>
+                            <div className={`text-xs ${t.textDim} mt-1`}>{filteredStats.wins} wins / {filteredStats.losses} losses</div>
+                          </div>
+
+                          <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`${t.textMuted} text-sm`}>Total Trades</span>
+                              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                                <span className="text-xl">📊</span>
+                              </div>
+                            </div>
+                            <div className="text-3xl font-bold">{filteredStats.totalTrades}</div>
+                            <div className={`text-xs ${t.textDim} mt-1`}>{filteredStats.openTrades} open positions</div>
+                          </div>
+
+                          <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`${t.textMuted} text-sm`}>W/L Ratio</span>
+                              <div className="w-10 h-10 bg-cyan-500/10 rounded-lg flex items-center justify-center">
+                                <span className="text-xl">⚖️</span>
+                              </div>
+                            </div>
+                            <div className="text-3xl font-bold text-cyan-400">
+                              {filteredStats.wins}:{filteredStats.losses}
+                            </div>
+                            <div className={`text-xs ${t.textDim} mt-1`}>Wins to losses</div>
+                          </div>
+                        </div>
+
+                        {/* Secondary Stats */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                          <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`${t.textMuted} text-sm`}>Avg Win</span>
+                              <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center">
+                                <TrendingUp className="w-5 h-5 text-emerald-400" />
+                              </div>
+                            </div>
+                            <div className="text-3xl font-bold text-emerald-400">${filteredStats.avgWin}</div>
+                            <div className={`text-xs ${t.textDim} mt-1`}>Per winning trade</div>
+                          </div>
+
+                          <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`${t.textMuted} text-sm`}>Avg Loss</span>
+                              <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                                <TrendingDown className="w-5 h-5 text-red-400" />
+                              </div>
+                            </div>
+                            <div className="text-3xl font-bold text-red-400">${filteredStats.avgLoss}</div>
+                            <div className={`text-xs ${t.textDim} mt-1`}>Per losing trade</div>
+                          </div>
+
+                          <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`${t.textMuted} text-sm`}>Best Trade</span>
+                              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center">
+                                <span className="text-xl">🏆</span>
+                              </div>
+                            </div>
+                            <div className="text-3xl font-bold text-green-400">${filteredStats.bestTrade}</div>
+                            <div className={`text-xs ${t.textDim} mt-1`}>Largest winner</div>
+                          </div>
+
+                          <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`${t.textMuted} text-sm`}>Worst Trade</span>
+                              <div className="w-10 h-10 bg-red-500/10 rounded-lg flex items-center justify-center">
+                                <span className="text-xl">💔</span>
+                              </div>
+                            </div>
+                            <div className="text-3xl font-bold text-red-400">
+                              {parseFloat(filteredStats.worstTrade) < 0 ? '-' : ''}${Math.abs(parseFloat(filteredStats.worstTrade)).toFixed(2)}
+                            </div>
+                            <div className={`text-xs ${t.textDim} mt-1`}>Largest loser</div>
+                          </div>
+                        </div>
+
+                        {/* Profit Factor */}
+                        <div className={`${t.cardBg} backdrop-blur-sm rounded-xl p-6 border ${t.border} shadow-lg`}>
+                          <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold">Profit Factor</h3>
+                            <div className="text-3xl font-bold text-blue-400">{filteredStats.profitFactor}</div>
+                          </div>
+                          <div className={`text-sm ${t.textMuted}`}>
+                            Profit Factor = (Avg Win × Wins) ÷ (Avg Loss × Losses)
+                            {parseFloat(filteredStats.profitFactor) > 2 && (
+                              <span className="ml-2 text-green-400">• Excellent</span>
+                            )}
+                            {parseFloat(filteredStats.profitFactor) > 1.5 && parseFloat(filteredStats.profitFactor) <= 2 && (
+                              <span className="ml-2 text-cyan-400">• Good</span>
+                            )}
+                            {parseFloat(filteredStats.profitFactor) > 1 && parseFloat(filteredStats.profitFactor) <= 1.5 && (
+                              <span className="ml-2 text-yellow-400">• Average</span>
+                            )}
+                            {parseFloat(filteredStats.profitFactor) <= 1 && parseFloat(filteredStats.profitFactor) > 0 && (
+                              <span className="ml-2 text-red-400">• Needs Improvement</span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Filtered Trades List */}
+                        {(statsFilterTag !== 'all' || statsFilterSetup !== 'all') && (
+                          <div className={`${t.cardBg} backdrop-blur-sm rounded-xl border ${t.border} shadow-lg overflow-hidden`}>
+                            <div className={`p-6 border-b ${t.border}`}>
+                              <h3 className="text-lg font-semibold">
+                                Filtered Trades ({getFilteredTrades().length})
+                              </h3>
+                            </div>
+                            <div className="overflow-x-auto">
+                              <table className="w-full">
+                                <thead className={`${t.inputBg}`}>
+                                  <tr>
+                                    <th className={`px-6 py-3 text-left text-xs font-medium ${t.textMuted} uppercase`}>Date</th>
+                                    <th className={`px-6 py-3 text-left text-xs font-medium ${t.textMuted} uppercase`}>Symbol</th>
+                                    <th className={`px-6 py-3 text-left text-xs font-medium ${t.textMuted} uppercase`}>Setup</th>
+                                    <th className={`px-6 py-3 text-left text-xs font-medium ${t.textMuted} uppercase`}>Side</th>
+                                    <th className={`px-6 py-3 text-left text-xs font-medium ${t.textMuted} uppercase`}>P&L</th>
+                                    <th className={`px-6 py-3 text-left text-xs font-medium ${t.textMuted} uppercase`}>Status</th>
+                                    <th className={`px-6 py-3 text-left text-xs font-medium ${t.textMuted} uppercase`}>Tags</th>
+                                  </tr>
+                                </thead>
+                                <tbody className={`divide-y ${t.border}`}>
+                                  {getFilteredTrades().slice(0, 20).map((trade) => (
+                                    <tr key={trade.id} className={t.hoverCard}>
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm">{trade.date}</td>
+                                      <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-blue-400 font-semibold">{trade.symbol}</span>
+                                      </td>
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm">{trade.setup || '-'}</td>
+                                      <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                                          trade.side === 'BUY' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
+                                        }`}>
+                                          {trade.side}
+                                        </span>
+                                      </td>
+                                      <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className={`font-semibold ${trade.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                          {trade.pnl < 0 ? '-' : ''}${Math.abs(trade.pnl).toFixed(2)}
+                                        </div>
+                                      </td>
+                                      <td className="px-6 py-4 whitespace-nowrap">
+                                        {trade.status === 'WIN' && <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs font-semibold">WIN</span>}
+                                        {trade.status === 'LOSS' && <span className="px-2 py-1 bg-red-500/20 text-red-400 rounded text-xs font-semibold">LOSS</span>}
+                                        {!trade.status && <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded text-xs font-semibold">OPEN</span>}
+                                      </td>
+                                      <td className="px-6 py-4">
+                                        <div className="flex gap-1 flex-wrap">
+                                          {trade.tags?.map((tag, i) => (
+                                            <span key={i} className={`px-2 py-0.5 ${t.inputBg} rounded text-xs`}>{tag}</span>
+                                          ))}
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
